@@ -1,15 +1,17 @@
-export const SUPPORTED_LANGUAGES = [
-  { name: "English", value: "english", code: "en-US" },
-  { name: "Spanish", value: "spanish", code: "es-ES" },
-  { name: "French", value: "french", code: "fr-FR" },
-  { name: "German", value: "german", code: "de-DE" },
-  { name: "Polish", value: "polish", code: "pl-PL" },
-  { name: "Italian", value: "italian", code: "it-IT" },
-  { name: "Portuguese", value: "portuguese", code: "pt-PT" },
-  { name: "Russian", value: "russian", code: "ru-RU" },
-  { name: "Japanese", value: "japanese", code: "ja-JP" },
-  { name: "Korean", value: "korean", code: "ko-KR" },
-  { name: "Mandarin Chinese", value: "mandarin", code: "zh-CN" },
-  { name: "Arabic", value: "arabic", code: "ar-SA" },
-  { name: "Hindi", value: "hindi", code: "hi-IN" },
+import { SkinType } from "@prisma/client";
+
+export const SUPPORTED_SKIN_TYPES: { name: string; value: SkinType }[] = [
+  { name: "Normal", value: "NORMAL" },
+  { name: "Oily", value: "OILY" },
+  { name: "Dry", value: "DRY" },
+  { name: "Combination", value: "COMBINATION" },
+  { name: "Sensitive", value: "SENSITIVE" },
+];
+
+export const SUPPORTED_CONCERNS: { name: string; value: string }[] = [
+  { name: "Acne", value: "Acne" },
+  { name: "Fine Lines & Wrinkles", value: "Fine Lines & Wrinkles" },
+  { name: "Hyperpigmentation", value: "Hyperpigmentation" },
+  { name: "Redness", value: "Redness" },
+  { name: "Dryness", value: "Dryness" },
 ];

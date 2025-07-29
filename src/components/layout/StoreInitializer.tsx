@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect } from "react";
@@ -6,8 +5,7 @@ import { useAuthStore } from "@/lib/stores/auth.store";
 import { useOnboardingStore } from "@/lib/stores/onboarding.store";
 import {
   useUserProfile,
-  // useJournalHistory,
-  // useStudyDeck,
+  useScanHistory,
 } from "@/lib/hooks/data";
 import { useLanguageStore } from "@/lib/stores/language.store";
 
@@ -28,28 +26,21 @@ function StoreInitializer() {
   const user = useAuthStore((state) => state.user);
   const authLoading = useAuthStore((state) => state.authLoading);
   const { data: userProfile, isLoading: isProfileLoading } = useUserProfile();
-  const { data: journals, isLoading: isJournalsLoading } = useJournalHistory();
-  useStudyDeck(); // Keep this hook active for caching, even if loading state isn't used here.
+  const { data: scans, isLoading: areScansLoading } = useScanHistory();
 
   // Effect 1: Set the active language as soon as the profile is available.
   // This unblocks other data hooks that depend on the active language.
   useEffect(() => {
     if (user && userProfile && !activeTargetLanguage) {
-      if (userProfile.defaultTargetLanguage) {
-        setActiveTargetLanguage(userProfile.defaultTargetLanguage);
-      } else if (
-        userProfile.languageProfiles &&
-        userProfile.languageProfiles.length > 0
-      ) {
-        setActiveTargetLanguage(userProfile.languageProfiles[0].language);
-      }
+      // In Skinova, there's no language selection, so this effect is simplified or could be removed.
+      // We'll keep it as a no-op for now in case of future language support.
     }
   }, [user, userProfile, activeTargetLanguage, setActiveTargetLanguage]);
 
   // Effect 2: Determine the onboarding step once all necessary data is loaded.
   useEffect(() => {
-    // We must wait for auth, profile, and journals to be loaded before making a decision.
-    if (authLoading || isProfileLoading || isJournalsLoading) {
+    // We must wait for auth, profile, and scans to be loaded before making a decision.
+    if (authLoading || isProfileLoading || areScansLoading) {
       return;
     }
 
@@ -57,7 +48,7 @@ function StoreInitializer() {
       if (!userProfile.onboardingCompleted && step === "INACTIVE") {
         determineCurrentStep({
           userProfile: userProfile,
-          journals: journals || [],
+          scans: scans || [],
         });
       } else if (userProfile.onboardingCompleted && step !== "INACTIVE") {
         resetOnboarding();
@@ -66,10 +57,10 @@ function StoreInitializer() {
   }, [
     user,
     userProfile,
-    journals,
+    scans,
     authLoading,
     isProfileLoading,
-    isJournalsLoading,
+    areScansLoading,
     determineCurrentStep,
     step,
     resetOnboarding,
