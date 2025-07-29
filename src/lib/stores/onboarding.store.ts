@@ -1,27 +1,24 @@
-
 import { create } from "zustand";
-import type { User, JournalEntry, Analysis } from "@prisma/client";
+import type { User, SkinScan, SkinAnalysis } from "@prisma/client";
 
 export type OnboardingStep =
   | "PROFILE_SETUP"
-  | "FIRST_JOURNAL"
+  | "FIRST_SCAN"
   | "VIEW_ANALYSIS"
-  | "CREATE_DECK"
-  | "STUDY_INTRO"
   | "COMPLETED"
   | "INACTIVE";
 
 interface OnboardingContext {
-  userProfile: User & { _count: { srsItems: number } };
-  journals: (JournalEntry & { analysis: Analysis | null })[];
+  userProfile: User;
+  scans: (SkinScan & { analysis: SkinAnalysis | null })[];
 }
 
 interface OnboardingState {
   step: OnboardingStep;
   isActive: boolean;
-  onboardingJournalId: string | null;
+  onboardingScanId: string | null;
   setStep: (step: OnboardingStep) => void;
-  setOnboardingJournalId: (id: string | null) => void;
+  setOnboardingScanId: (id: string | null) => void;
   resetOnboarding: () => void;
   determineCurrentStep: (context: OnboardingContext) => void;
 }
@@ -29,7 +26,7 @@ interface OnboardingState {
 export const useOnboardingStore = create<OnboardingState>((set) => ({
   step: "INACTIVE",
   isActive: false,
-  onboardingJournalId: null,
+  onboardingScanId: null,
 
   setStep: (step) =>
     set((state) => ({
@@ -37,13 +34,13 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
       isActive: step !== "INACTIVE",
     })),
 
-  setOnboardingJournalId: (id) => set({ onboardingJournalId: id }),
+  setOnboardingScanId: (id) => set({ onboardingScanId: id }),
 
   resetOnboarding: () =>
-    set({ step: "INACTIVE", isActive: false, onboardingJournalId: null }),
+    set({ step: "INACTIVE", isActive: false, onboardingScanId: null }),
 
   determineCurrentStep: (context: OnboardingContext) => {
-    const { userProfile, journals } = context;
+    const { userProfile, scans } = context;
 
     if (userProfile.onboardingCompleted) {
       set({ step: "INACTIVE", isActive: false });
@@ -51,28 +48,25 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
     }
 
     const profileIsComplete = !!(
-      userProfile.nativeLanguage && userProfile.defaultTargetLanguage
+      userProfile.skinType && userProfile.primaryConcern
     );
-    const hasJournals = journals && journals.length > 0;
-    const hasSrsItems = (userProfile._count?.srsItems ?? 0) > 0;
+    const hasScans = scans && scans.length > 0;
 
     let nextStep: OnboardingStep = "INACTIVE";
 
     if (!profileIsComplete) {
       nextStep = "PROFILE_SETUP";
-    } else if (!hasJournals) {
-      nextStep = "FIRST_JOURNAL";
+    } else if (!hasScans) {
+      nextStep = "FIRST_SCAN";
     } else {
-      const latestJournal = journals[0];
-      if (latestJournal) {
-        // Store the latest journal ID for the tour
-        set({ onboardingJournalId: latestJournal.id });
-        if (!latestJournal.analysis) {
+      const latestScan = scans[0];
+      if (latestScan) {
+        // Store the latest scan ID for the tour
+        set({ onboardingScanId: latestScan.id });
+        if (!latestScan.analysis) {
           nextStep = "VIEW_ANALYSIS"; // Waiting for analysis
-        } else if (!hasSrsItems) {
-          nextStep = "VIEW_ANALYSIS"; // Has analysis, needs to create a card
         } else {
-          nextStep = "STUDY_INTRO"; // Has everything, just needs to see the study page
+          nextStep = "COMPLETED"; // User has done everything needed for the tour
         }
       }
     }

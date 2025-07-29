@@ -7,7 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { AuthLinks } from "@/components/AuthLinks";
 import { DesktopSidebar } from "./DesktopSidebar";
 import { BottomTabBar } from "./BottomTabBar";
-import { OnboardingWizard } from "../OnboardingWizard";
+import { SkinProfileWizard } from "../onboarding/SkinProfileWizard";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,7 @@ function AppFooter() {
   return (
     <footer className="hidden md:flex border-t py-6 bg-secondary/50">
       <div className="container mx-auto px-4 text-sm text-muted-foreground flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p>© {new Date().getFullYear()} Lexity. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} Skinova. All rights reserved.</p>
         <div className="flex gap-4">
           <Link
             href="/about"
@@ -87,7 +87,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const {
     step,
     isActive,
-    onboardingJournalId,
+    onboardingScanId,
     setStep,
   } = useOnboardingStore();
   const pathname = usePathname();
@@ -111,9 +111,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const protectedRoutes = [
     "/dashboard",
-    "/journal",
-    "/study",
-    "/translator",
+    "/scan",
+    "/progress",
+    "/routine",
     "/settings",
     "/admin",
   ];
@@ -140,31 +140,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     switch (step) {
       case "PROFILE_SETUP":
         return (
-          <OnboardingWizard
+          // @ts-ignore
+          <SkinProfileWizard
             isOpen={true}
             onClose={() => {}}
-            onComplete={() => setStep("FIRST_JOURNAL")}
+            onComplete={() => setStep("FIRST_SCAN")}
             onError={(err) => console.error("Onboarding wizard error:", err)}
           />
         );
 
-      case "FIRST_JOURNAL":
-        if (pathname === "/journal") {
+      case "FIRST_SCAN":
+        if (pathname === "/scan") {
           return null;
         }
         return (
           <Dialog open={true}>
             <DialogContent showCloseButton={false}>
               <DialogHeader>
-                <DialogTitle>Your First Entry</DialogTitle>
+                <DialogTitle>Your First Scan</DialogTitle>
                 <DialogDescription>
-                  It's time to write your first journal entry. This will help
-                  us get a baseline of your current skill level.
+                  It's time to take your first skin scan. This will help
+                  us get a baseline of your current skin health.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button onClick={() => router.push("/journal")}>
-                  Go to Journal
+                <Button onClick={() => router.push("/scan")}>
+                  Go to Scan Page
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -173,51 +174,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       case "VIEW_ANALYSIS":
         // This logic handles showing a prompt to the user if they navigate away
-        // from the journal page before finishing the tour.
-        if (pathname.startsWith("/journal/")) return null;
+        // from the scan page before finishing the tour.
+        if (pathname.startsWith("/scan/")) return null;
         return (
           <Dialog open={true}>
             <DialogContent showCloseButton={false}>
               <DialogHeader>
-                <DialogTitle>Let's Review Your Feedback</DialogTitle>
+                <DialogTitle>Let's Review Your Analysis</DialogTitle>
                 <DialogDescription>
-                  Your first journal entry has been analyzed. Let's check out
-                  the feedback together.
+                  Your first scan has been analyzed. Let's check out
+                  the results together.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
                 <Button
                   onClick={() => {
-                    router.push(`/journal/${onboardingJournalId}`);
+                    router.push(`/scan/${onboardingScanId}`);
                   }}
-                  disabled={!onboardingJournalId}
+                  disabled={!onboardingScanId}
                 >
                   View My Analysis
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        );
-
-      case "CREATE_DECK":
-        return (
-          <Dialog open={true}>
-            <DialogContent showCloseButton={false}>
-              <DialogHeader>
-                <DialogTitle>Flashcard Created!</DialogTitle>
-                <DialogDescription>
-                  You've added your first correction to your study deck. Let's
-                  go practice.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  onClick={() => {
-                    router.push("/study");
-                    setStep("STUDY_INTRO");
-                  }}
-                >
-                  Go to Study Page
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -231,20 +207,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <DialogHeader>
                 <DialogTitle>🎉 Setup Complete!</DialogTitle>
                 <DialogDescription>
-                  You're all set. You're ready to master your new language.
+                  You're all set. You're ready to start your journey to healthier skin.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="gap-2 sm:flex-row">
-                <Button
-                  variant="secondary"
-                  onClick={() => completeOnboardingMutation.mutate()}
-                  disabled={completeOnboardingMutation.isPending}
-                >
-                  {completeOnboardingMutation.isPending && (
-                    <Spinner size="sm" className="mr-2" />
-                  )}
-                  View My Progress
-                </Button>
                 <Button
                   onClick={() => completeOnboardingMutation.mutate()}
                   disabled={completeOnboardingMutation.isPending}
@@ -287,7 +253,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <nav className="bg-background/80 backdrop-blur-lg border-b sticky top-0 z-40">
         <div className="container mx-auto flex justify-between items-center h-16">
           <Link href="/" className="text-lg font-bold">
-            Lexity
+            Skinova
           </Link>
           <div className="space-x-2 sm:space-x-4 flex items-center">
             <div className="hidden sm:flex items-center space-x-4">
