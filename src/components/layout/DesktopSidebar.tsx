@@ -1,17 +1,16 @@
-
 "use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Book, Brain, Settings, LogOut, Languages } from "lucide-react";
+import { Home, ScanFace, ListOrdered, BarChart3, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/stores/auth.store";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
-  { href: "/journal", label: "Journal", icon: Book },
-  { href: "/study", label: "Study", icon: Brain },
-  { href: "/translator", label: "Translator", icon: Languages },
+  { href: "/scan", label: "New Scan", icon: ScanFace },
+  { href: "/routine", label: "My Routine", icon: ListOrdered },
+  { href: "/progress", label: "Progress", icon: BarChart3 },
 ];
 
 export function DesktopSidebar() {
@@ -23,7 +22,7 @@ export function DesktopSidebar() {
     <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border">
       <div className="flex items-center h-16 border-b px-6">
         <Link href="/" className="text-lg font-bold">
-          Lexity
+          Skinova
         </Link>
       </div>
       <div className="flex-1 p-4">

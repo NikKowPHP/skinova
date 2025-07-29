@@ -1,16 +1,15 @@
-
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Book, Brain, Languages, Settings } from "lucide-react";
+import { Home, ScanFace, ListOrdered, BarChart3, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Home", icon: Home },
-  { href: "/journal", label: "Journal", icon: Book },
-  { href: "/study", label: "Study", icon: Brain },
-  { href: "/translator", label: "Translator", icon: Languages },
+  { href: "/scan", label: "Scan", icon: ScanFace },
+  { href: "/routine", label: "Routine", icon: ListOrdered },
+  { href: "/progress", label: "Progress", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
