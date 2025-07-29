@@ -19,7 +19,7 @@ export function BottomTabBar() {
   const { data: userProfile } = useUserProfile();
   
   const navItems = userProfile?.subscriptionTier === 'ADMIN'
-    ? [...baseNavItems, { href: "/admin", label: "Admin", icon: Shield }]
+    ? [...baseNavItems.slice(0, 4), { href: "/admin", label: "Admin", icon: Shield }, ...baseNavItems.slice(4)]
     : baseNavItems;
 
   return (
