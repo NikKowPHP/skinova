@@ -1,8 +1,6 @@
 import axios from "axios";
-import type { OnboardingData, ProfileUpdateData, ScanWithAnalysis, RoutineWithStepsAndProducts, ProgressAnalyticsData } from "@/lib/types";
+import type { OnboardingData, ProfileUpdateData, ScanWithAnalysis, RoutineWithStepsAndProducts, ProgressAnalyticsData, ScanHistoryItem } from "@/lib/types";
 import { Product, Consultation } from "@prisma/client";
-
-interface SkinScan { id: string; [key: string]: any; }
 
 export const apiClient = {
   profile: {
@@ -17,7 +15,7 @@ export const apiClient = {
   },
   scan: {
     getAll: async () => {
-      const { data } = await axios.get<SkinScan[]>("/api/scan");
+      const { data } = await axios.get<ScanHistoryItem[]>("/api/scan");
       return data;
     },
     getById: async (id: string) => {
@@ -25,7 +23,7 @@ export const apiClient = {
       return data;
     },
     create: async (payload: { imageUrl: string; notes?: string }) => {
-      const { data } = await axios.post<SkinScan>("/api/scan", payload);
+      const { data } = await axios.post<ScanWithAnalysis>("/api/scan", payload);
       return data;
     },
     delete: async (id: string) => {
@@ -107,11 +105,11 @@ export const apiClient = {
       const { data } = await axios.put("/api/admin/settings", payload);
       return data;
     },
-    getProducts: async () => { const { data } = await axios.get("/api/admin/products"); return data; },
+    getProducts: async () => { const { data } = await axios.get<Product[]>("/api/admin/products"); return data; },
     createProduct: async (payload: Omit<Product, 'id'>) => { const { data } = await axios.post("/api/admin/products", payload); return data; },
     updateProduct: async (id: string, payload: Omit<Product, 'id'>) => { const { data } = await axios.put(`/api/admin/products/${id}`, payload); return data; },
     deleteProduct: async (id: string) => { await axios.delete(`/api/admin/products/${id}`); },
-    getConsultations: async (params?: { status?: string }) => { const { data } = await axios.get("/api/admin/consultations", { params }); return data; },
+    getConsultations: async (params?: { status?: string }) => { const { data } = await axios.get<Consultation[]>("/api/admin/consultations", { params }); return data; },
     getConsultation: async (id: string) => { const { data } = await axios.get(`/api/admin/consultations/${id}`); return data; },
     updateConsultation: async (id: string, payload: { status: string; notes?: string }) => { const { data } = await axios.put(`/api/admin/consultations/${id}`, payload); return data; },
   },

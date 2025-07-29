@@ -17,3 +17,5 @@
 - [x] Update app_description.md to include undocumented features
 - [x] Remove unused files inherited from Lexity framework
 - [x] Fix TypeScript errors from code hygiene pass
+- [x] Fix TypeScript type mismatch between scan history API and onboarding store
+- [x] Fix Tailwind CSS compilation error by restructuring globals.css

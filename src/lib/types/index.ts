@@ -15,6 +15,15 @@ export type ScanWithAnalysis = SkinScan & {
     }) | null;
 };
 
+export type ScanHistoryItem = {
+  id: string;
+  imageUrl: string | null;
+  createdAt: Date;
+  analysis: {
+    overallScore: number;
+  } | null;
+};
+
 export type RoutineWithStepsAndProducts = Routine & {
     steps: (RoutineStep & {
         product: Product;

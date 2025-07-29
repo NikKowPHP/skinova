@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import type { User, SkinScan, SkinAnalysis } from "@prisma/client";
+import type { User } from "@prisma/client";
+import type { ScanHistoryItem } from "@/lib/types";
 
 export type OnboardingStep =
   | "PROFILE_SETUP"
@@ -10,7 +11,7 @@ export type OnboardingStep =
 
 interface OnboardingContext {
   userProfile: User;
-  scans: (SkinScan & { analysis: SkinAnalysis | null })[];
+  scans: ScanHistoryItem[];
 }
 
 interface OnboardingState {
