@@ -6,8 +6,8 @@ import { decrypt } from "@/lib/encryption";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 // GET handler to fetch a single scan with its analysis
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   if (!id) return NextResponse.json({ error: "Scan ID is required" }, { status: 400 });
 
   const supabase = await createClient();
@@ -26,9 +26,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Scan not found" }, { status: 404 });
     }
 
-    // Decrypt path and create a signed URL for secure, temporary access
+    // Decrypt path and handle both external URLs (seeded data) and internal paths
     const decryptedPath = decrypt(scan.imageUrl);
     if (decryptedPath) {
+      if (decryptedPath.startsWith('http')) {
+        scan.imageUrl = decryptedPath;
+      } else {
         const { data, error } = await supabaseAdmin.storage
             .from(process.env.NEXT_PUBLIC_SKIN_SCANS_BUCKET!)
             .createSignedUrl(decryptedPath, 60 * 60); // 1 hour expiry
@@ -39,6 +42,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         } else {
             scan.imageUrl = data.signedUrl;
         }
+      }
     } else {
         scan.imageUrl = '';
     }
@@ -57,8 +61,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE handler to remove a scan
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } =  await params;
   if (!id) return NextResponse.json({ error: "Scan ID is required" }, { status: 400 });
 
   const supabase = await createClient();

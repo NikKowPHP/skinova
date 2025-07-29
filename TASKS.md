@@ -22,3 +22,5 @@
 - [x] Add comprehensive logging to all backend API routes
 - [x] Fix image download logic in analysis API to support mock URLs
 - [x] Implement production-ready image upload and analysis pipeline
+- [x] Fix "Object not found" error for seeded images by handling external URLs
+- [x] Fix infinite polling loop on scan analysis page

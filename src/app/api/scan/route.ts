@@ -30,6 +30,10 @@ export async function GET(req: NextRequest) {
         if (!decryptedPath) {
             return { ...scan, imageUrl: null };
         }
+
+        if (decryptedPath.startsWith('http')) {
+          return { ...scan, imageUrl: decryptedPath };
+        }
         
         const { data, error } = await supabaseAdmin.storage
             .from(process.env.NEXT_PUBLIC_SKIN_SCANS_BUCKET!)
