@@ -1,14 +1,8 @@
-Of course. Here are the two final, comprehensive, and production-ready planning documents for the Skinova project. These documents incorporate all the strategic decisions, technical details, and operational considerations we have discussed.
-
-1.  **Technical Application Description (v1.4):** The "what and why." This is the single source of truth for the project's vision, architecture, and core requirements.
-2.  **Master Implementation Plan (v1.2):** The "how and when." This is the actionable roadmap for building, testing, and deploying the application.
-
-Together, they form a complete and professional blueprint ready for execution.
+Of course. Here is the final, fully updated version of the Skinova technical application description, incorporating the details on administration, data portability, and scheduled tasks. This can be considered the definitive v1.5.
 
 ---
----
 
-# **Document 1: Skinova Technical Application Description (v1.4)**
+# Skinova Technical Application Description (v1.5)
 
 ### *An Adaptation of the Lexity Framework*
 
@@ -24,194 +18,166 @@ Our core development loop mirrors Lexity's proven `Input -> Analyze -> Action` c
 3.  **Act:** The user receives recommendations and can optionally seek professional consultation (the action).
 4.  **Track:** The history of scans creates a visual log of progress.
 
-Furthermore, we are deeply committed to **data privacy and security**, a principle inherited from the Lexity architecture. Our hybrid **freemium and pay-per-use model** is built on the foundation that **user data is never sold and sensitive information is encrypted at the application layer**. The premium tier and pay-per-use consultations fund the app's development and offer **advanced analytics, historical progress tracking, and professional medical advice**.
+Furthermore, we are deeply committed to **data privacy and security**, a principle inherited from the Lexity architecture. Our hybrid **freemium and pay-per-use model** is built on the foundation that **user data is never sold, is encrypted at the application layer, and remains fully portable via a data export feature**. The premium tier and pay-per-use consultations fund the app's development and offer **advanced analytics, historical progress tracking, and professional medical advice**.
 
-## 2. Architectural Overview
+## 2. Core Functionality & User Journeys
 
-The system is built upon a **clean separation of concerns** within a **Next.js monorepo**, leveraging the established patterns of the Lexity project. This approach utilizes **server components for performance** and **dedicated API services for backend logic**, ensuring a cohesive and scalable development environment.
+The application is built around four primary journeys:
 
-```mermaid
-graph TD
-    subgraph User Device
-        A[Client App on Browser/Mobile]
-    end
+### A. The Scan & Analysis Loop
+- A `User` uploads a `SkinScan` (an image of their face), potentially adding notes.
+- The scan is submitted to the `/api/scan/analyze` endpoint.
+- An `SkinAnalysis` record is created, containing structured data about identified skin concerns, overall skin health scores, and personalized recommendations.
+- The analysis will contain multiple `IdentifiedConcern` records (e.g., acne, dryness, hyperpigmentation).
+- The user can view their original image with highlighted areas corresponding to each identified concern.
 
-    subgraph Hosting / Frontend Layer
-        B([Next.js App])
-        B -- Serves UI --> A
-        B -- API Calls --> C
-    end
+### B. The Action & Consultation Loop
+- Based on the `SkinAnalysis`, the user is presented with a recommended `Routine`.
+- The routine consists of `RoutineStep`s, which are linked to specific `Product`s from our database.
+- For more serious concerns, the user can initiate a pay-per-use `Consultation` with a licensed dermatologist. This is handled via a **Stripe Checkout session for a one-time payment**, which is linked directly to the `SkinScan` and its `SkinAnalysis`.
 
-    subgraph Backend Services & APIs
-        C{ Skinova API }
-        D[Supabase Auth]
-        E[Supabase Storage (for user selfies)]
-        F[Database (PostgreSQL via Prisma)]
-        G[Stripe API (for Payments & Subscriptions)]
-        H[SendGrid (for Email Notifications)]
-        J[Google Gemini API (for Skin Analysis)]
-    end
+### C. The Tracking & Progress Loop
+- Each `SkinScan` is saved, creating a historical, visual log of the user's skin over time.
+- The dashboard will feature analytics (`/api/analytics`) showing trend lines for key skin health metrics (e.g., clarity, hydration, texture) derived from the series of `SkinAnalysis` records.
+- This allows users to correlate their `Routine` adherence with tangible visual progress.
 
-    %% User Flow: Skin Analysis
-    A -- "1. Signs In/Up" --> D
-    A -- "2. Uploads Selfie" --> E
-    E -- "3. Triggers API" --> C
-    
-    %% User Flow: Teledermatology
-    A -- "Requests Teledermatology Consult" --> G
+### D. Admin & Support Journey
+- An administrative journey allows authorized staff to manage user accounts, view consultation histories, and handle support requests via a dedicated `/admin` dashboard. This role is protected and requires a specific subscription tier (`ADMIN`) set in the database.
 
-    %% Backend Flow: Analysis Pipeline
-    C -- "4. Verifies User Token" --> D
-    C -- "5. Sends image for processing" --> J
-    J -- "6. Returns structured analysis" --> C
-    C -- "7. Encrypts & saves results to DB" --> F
-    C -- "8. Notifies user" --> H
+## 3. Technical Architecture
 
-    %% Backend Flow: Payment & Consultation
-    C -- "Manages Subscription Status" --> G
-    C -- "Manages Consultation Payment" --> G
-    G -- "Webhook on Payment Success" --> C
-    C -- "Creates Consultation Record" --> F
-```
+### A. Tech Stack
+- **Framework:** Next.js (App Router)
+- **Language:** TypeScript
+- **Database:** PostgreSQL with Prisma ORM
+- **Authentication & Storage:** Supabase
+- **Styling:** Tailwind CSS with shadcn/ui components
+- **State Management:** TanStack Query (Server State) & Zustand (Client State)
+- **AI Services:** Google Gemini (Multi-modal for image analysis)
+- **Testing:** Jest (Unit/Integration), Playwright (E2E)
+- **Monitoring & Analytics:** Sentry, PostHog
 
-**Flow Description:**
+### B. AI Service Architecture & Strategy
+The application's core intelligence relies on a resilient and focused AI architecture.
 
-1.  **Client:** The user interacts with the **Next.js** frontend.
-2.  **Authentication & Storage:** **Supabase** provides a complete, secure solution for user management (Auth) and encrypted storage for user-submitted images (Storage).
-3.  **Application Backend:** Core business logic resides in **Next.js API Routes**. These endpoints are protected by **JWT verification** via Supabase.
-4.  **Database Interaction:** **Prisma** acts as the type-safe layer between our application logic and the **PostgreSQL** database. Sensitive data (analysis results, consultation notes) is encrypted via our `encryption.ts` utility before persistence.
-5.  **Payment Processing:** **Stripe** handles both recurring premium subscriptions and one-time payments for teledermatology consultations. Our backend listens to webhooks to sync state and create consultation records.
-6.  **Asynchronous Tasks:** Background tasks like **sending email notifications** and long-running **AI analysis jobs** are handled by **Vercel Functions**.
+- **Primary Analysis Service:** **Google Gemini with multi-modal capabilities** (`src/lib/ai/gemini-service.ts`) is the exclusive AI provider. It is responsible for processing user-submitted images and text to generate the structured `SkinAnalysis`.
+- **Resilience:** The application uses a dedicated "executor" (`src/lib/ai/gemini-executor.ts`) which implements **randomized API key rotation** and an **exponential backoff retry mechanism** (`src/lib/utils/withRetry.ts`). This ensures high availability and gracefully handles transient API errors or rate limits.
+- **The "Brain" of the AI:** The AI's analytical capabilities, output structure, and clinical tone are defined by prompt-engineering files located in `src/lib/ai/prompts/`. A key prompt, for example, would be `skinAnalysis.prompt.ts`, which instructs the multi-modal model how to analyze an image and return valid JSON.
 
-## 3. Core Tech Stack
+### C. Critical Workflow: Image Upload and Analysis
+The handling of sensitive user images follows a strict security protocol:
 
-| Component | Technology | Rationale |
+1.  **Client-Side Upload:** The user selects an image in the browser. The client-side code directly uploads this image to a **private Supabase Storage bucket**. This ensures the raw image data never touches our application server directly.
+2.  **Secure URL Generation:** Upon successful upload, Supabase Storage returns a unique identifier for the file. Our backend then generates a time-limited, signed URL for this private file.
+3.  **Data Encryption & Storage:** This temporary signed URL is encrypted using our `encryption.service` and stored in the `SkinScan.imageUrl` field in the database.
+4.  **AI Analysis:** When an analysis is requested, the backend decrypts the URL, fetches the image data from the secure storage, and sends the image blob/base64 data directly to the Google Gemini multi-modal API. **The AI does not access the storage URL directly.**
+5.  **Secure Viewing:** When a user needs to view their past scan, the backend generates a new short-lived signed URL for the client to render the image securely.
+
+### D. Security: Application-Layer Encryption
+Inherited directly from the Lexity framework, this is a critical security and privacy feature. All sensitive user data is encrypted at the application layer before being stored.
+
+- **Service:** `src/lib/encryption.ts` provides `encrypt` and `decrypt` functions using `AES-256-GCM`.
+- **Encrypted Fields (`prisma/schema.prisma`):**
+    - `SkinScan.imageUrl` (The URL to the private, encrypted image file)
+    - `SkinScan.notes`
+    - `SkinAnalysis.analysisJson`, `SkinAnalysis.rawAiResponse`
+    - `Consultation.notes`
+- **Implication:** Sensitive user photos and health data are unreadable at rest, even with direct database access. All data must be passed through the application's encryption service to be viewed.
+
+### E. State Management Strategy
+The application uses a dual strategy for state management:
+
+1.  **Server State (TanStack Query):** All server interactions (fetching scans, submitting data) are managed by TanStack Query. Hooks are centralized in `src/lib/hooks/data/`. This provides robust caching, request deduplication, and optimistic updates for a fluid user experience.
+2.  **Global Client State (Zustand):** Zustand manages ephemeral, cross-cutting client state. Key stores include:
+    - `src/lib/stores/auth.store.ts`: Current user session and auth status.
+    - `src/lib/stores/onboarding.store.ts`: Manages the state for the new user guided tour.
+
+### F. Onboarding Flow Logic
+The new user experience is a stateful, guided tour managed by `src/lib/stores/onboarding.store.ts`.
+
+- **`SKIN_PROFILE_SETUP`:** User provides their skin type, primary concerns, and goals.
+- **`FIRST_SCAN`:** User is guided to take and upload their first photo.
+- **`VIEW_ANALYSIS`:** After the AI analysis is complete, the user is prompted to view their results.
+- **`CREATE_ROUTINE`:** The user is shown their first recommended routine and prompted to save it.
+- **`VIEW_PROGRESS_LOG`:** The user is shown their new Skin Health Logbook, which now contains its first entry.
+- **`COMPLETED`:** The flow is finalized and the user's profile is marked `onboardingCompleted=true`.
+
+### G. Scheduled & Background Tasks
+- A weekly cron job (`/api/cron/scan-reminder`) is configured to send users an email notification, encouraging them to perform their weekly scan and maintain their progress log. This is secured via a `CRON_SECRET` environment variable.
+
+## 4. Data Models
+The database schema (`prisma/schema.prisma`) is designed around the core user journey.
+
+- **User:** The central model. Contains profile information like `skinType` and `skinGoals`.
+- **SkinScan:** Replaces `JournalEntry`. Contains an encrypted `imageUrl` and optional `notes`.
+- **SkinAnalysis:** Replaces `Analysis`. Linked to a `SkinScan`, it stores the structured JSON output from the AI.
+- **IdentifiedConcern:** Replaces `Mistake`. Linked to a `SkinAnalysis`, it details a specific issue (e.g., 'acne'), its location, and severity.
+- **Routine:** A collection of `RoutineStep`s for a `User`. A `User` has **one active `Routine`** at any given time. Each new `SkinAnalysis` or `Consultation` can generate recommendations that **update** this single, canonical routine.
+- **RoutineStep:** An action in a routine, linked to a `Product` (e.g., "AM - Cleanser").
+- **Product:** A generic product that can be recommended in a routine.
+- **Consultation:** Links a `User` and a `SkinScan` to a dermatologist for a paid review.
+
+## 5. Key Directories & API Endpoints
+
+- `src/app/api/`: All backend API routes (`/api/scan/`, `/api/consultation/`, `/api/admin/`).
+- `src/app/(pages)/`: Next.js App Router pages (`/scan`, `/routine`, `/progress`, `/admin`).
+- `src/components/`: Reusable UI components.
+- `src/lib/`: Core application logic.
+    - `src/lib/ai/`: All AI service clients, executors, and prompts.
+    - `src/lib/hooks/`: All TanStack Query hooks.
+    - `src/lib/stores/`: Zustand stores for global client state.
+- `prisma/`: Database schema, migrations, and seed script.
+- `e2e/`: Playwright end-to-end tests.
+
+#### Core API Endpoints
+
+| Action | Endpoint | Description |
 | :--- | :--- | :--- |
-| **Framework** | **Next.js 15+** | Inherited from Lexity. The App Router, Server Components, and integrated API routes provide a high-performance, full-stack development experience. |
-| **Database** | **PostgreSQL** | Inherited from Lexity. Chosen for its robustness, reliability, and powerful features for handling sensitive user data and relational analysis history. |
-| **ORM** | **Prisma** | Inherited from Lexity. Provides end-to-end type safety from the database to the frontend, simplifying data access and eliminating entire classes of bugs. |
-| **Authentication** | **Supabase Auth** | Inherited from Lexity. A secure, feature-rich, and easy-to-integrate solution for user management. |
-| **Payments** | **Stripe** | Inherited from Lexity. The market leader for developer-friendly payments, supporting both subscriptions and one-time payments required for our model. |
-| **AI / Core Engine**| **Google Gemini API** | **[LEVERAGED]** Inherited from Lexity. The framework already includes a robust, key-rotated Gemini service capable of multi-modal (text and image) analysis. We will adapt the existing implementation to process skin images. |
-| **Encryption** | **`crypto` (Node.js)** | Inherited from Lexity. The `encryption.ts` service provides critical application-layer encryption (AES-256-GCM) for all sensitive user data. |
-| **Styling** | **Tailwind CSS + shadcn/ui** | Inherited from Lexity. A utility-first approach that enables rapid, consistent UI development with a strong foundation of accessible components. |
-| **Deployment** | **Vercel** | Inherited from Lexity. The ideal platform for Next.js, providing seamless CI/CD, serverless functions, and a global CDN. |
+| Upload Scan & Request Analysis | `POST /api/scan/analyze` | Initiates the core analysis loop. |
+| Fetch Scan History | `GET /api/scan` | Retrieves a user's historical scans. |
+| Fetch Single Scan | `GET /api/scan/[id]` | Retrieves a specific scan and its analysis. |
+| Manage Routine | `PUT /api/routine` | Updates the user's active skincare routine. |
+| Initiate Consultation | `POST /api/consultation/checkout` | Creates a Stripe session for a new consultation. |
+| Export User Data | `GET /api/user/export` | Allows the user to download a JSON file of all their scan and analysis data. |
 
-## 4. Key NPM Libraries & Tooling
--   **State Management:** `Zustand`
--   **Data Fetching & Mutation:** `@tanstack/react-query`
--   **Forms:** `react-hook-form`
--   **Schema Validation:** `Zod`
--   **UI Components:** `shadcn/ui`
--   **Utilities:** `date-fns`, `clsx`, `lucide-react`
+## 6. Setup & Configuration
 
-## 5. Monetization Strategy: Hybrid (Freemium & Pay-Per-Use)
-| Tier / Service | Price | Key Features | Target Audience |
-| :--- | :--- | :--- | :--- |
-| **Free** | $0 | • AI Skin Analysis (2 per month)<br>• Basic personalized routine<br>• Access to educational content | Individuals in Poland (18-45) curious about personalized skincare. |
-| **Premium** | ~25 PLN / month | All Free features, plus:<br>• Unlimited & advanced AI analysis<br>• Historical skin progress tracking<br>• E-commerce discounts & price comparisons | Dedicated skincare enthusiasts who want to track their journey and optimize their routine. |
-| **Teledermatology**| ~120 PLN (Pay-Per-Use) | • Secure image submission to a licensed dermatologist<br>• Professional review & personalized diagnosis<br>• Secure in-app report delivery | Any user with a specific skin concern seeking fast, professional medical advice. |
+### A. Setup Steps
+1.  Clone the repository.
+2.  Install dependencies: `npm install`.
+3.  Set up the `.env` file using `.env.example` as a template.
+4.  Start the database: `docker-compose up -d db`.
+5.  Run database migrations: `npx prisma migrate dev`.
+6.  (Optional) Seed the database: `npx prisma seed`.
+7.  Run the development server: `npm run dev`.
 
-## 6. High-Level Database Schema
+### B. Environment Variables
 
-*This schema is an adaptation of Lexity's model, repurposed for the Skinova domain. Sensitive text fields will be encrypted using the inherited `encryption.ts` utility.*
-```prisma
-model User {
-  id               String    @id
-  // ... (keep existing fields like email, supabaseAuthId, stripeCustomerId, etc.)
-  skinAnalyses   SkinAnalysis[]
-  consultations  Consultation[]
-}
-
-model SkinAnalysis {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  imageUrl  String
-  results   String   @db.Text // Encrypted JSON from the Vision AI
-  createdAt DateTime @default(now())
-}
-
-model Consultation {
-  id             String   @id @default(cuid())
-  userId         String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status         String   @default("PENDING") // PENDING, IN_REVIEW, COMPLETED
-  imageUrls      String[]
-  userNotes      String?  @db.Text // Encrypted
-  dermatologistReport String?  @db.Text // Encrypted
-  stripePaymentId String   @unique
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-}
-```
-
-## 7. Development Epics & User Stories
-- **Epic 1: Core System & Infrastructure:** Handle Stripe webhooks, build the AI analysis pipeline, and gate features by subscription tier.
-- **Epic 2: User Account & Authentication:** Implement user registration and login.
-- **Epic 3: Core Feature - AI Skin Analysis:** Implement the free-tier image upload, analysis report, and the premium historical tracking feature.
-- **Epic 4: Monetization:** Build the pricing page, Stripe Checkout for one-time consultations, and a customer portal for future subscriptions.
-- **Epic 5: Dermatologist Portal:** Build a secure portal for dermatologists to review pending consultations and submit reports.
-
-## 8. Development & Compliance Practices
-
-### 8.1. UI/UX Philosophy
-The application will be built with a **mobile-first** philosophy and a design system inspired by **Apple's Human Interface Guidelines (HIG)**, favoring clarity, depth through layers, and a clean aesthetic.
-
-### 8.2. Code Quality & Best Practices
--   **Folder Structure:** Feature-based (`/features/skin-analysis`).
--   **Type Safety:** End-to-end type safety with Zod and Prisma.
--   **Security:** Application-layer encryption for all sensitive data.
-
-### 8.3. Compliance & Data Handling (PHI/GDPR)
--   **Data Classification:** User images and consultation data are considered Protected Health Information (PHI).
--   **Legal Counsel:** We will engage a lawyer specializing in health-tech and GDPR.
--   **Required Documents:** Terms of Service, Privacy Policy, and Dermatologist Contracts will be formally drafted.
--   **User Consent Flow:** A legally-reviewed, explicit consent checkbox will be required before image upload.
-
-### 8.4. Observability Strategy
--   **Error Tracking:** Sentry.
--   **Performance Monitoring:** Vercel Analytics.
--   **Structured Logging:** For key backend processes.
-
-### 8.5. Reactive UI & Performance Philosophy
--   **Skeletons for Initial Loading States:** Use layout placeholders (`skeleton.tsx`) during initial data fetches.
--   **Reactive Button and Control States:** Buttons will enter a loading state using `Spinner.tsx`, controlled by `useMutation`.
--   **Optimistic UI Updates:** For low-risk operations, the UI will update instantly, managed by `react-query`.
-
-### 8.6. AI Provider Abstraction & Future-Proofing
-All AI service calls will be made through an abstracted service interface. This ensures that in the future, we can easily integrate, swap, or A/B test different AI models (such as those from **Cerebras** or **Groq**) with minimal refactoring.
-
-## 9. MVP Scope & Phasing
--   **Phase 1: MVP (Target: Q4 2024):** Focus on core user authentication, the free AI analysis flow, the pay-per-use teledermatology loop, and a basic dermatologist portal.
--   **Phase 2: Post-MVP (First Major Update):** Introduce the recurring revenue (Premium) model and enhance user retention features like historical tracking.
-
-## 10. Potential Risks & Mitigation
-| Risk Category | Risk Description | Mitigation Strategy |
+| Variable | Description | Example |
 | :--- | :--- | :--- |
-| **Technical** | AI analysis yields inaccurate results. | Add clear disclaimers that the AI is a guide, not a medical diagnosis. Have a human dermatologist review a sample of results to calibrate. |
-| **Product** | Low conversion rate for pay-per-use consultations. | Price competitively, feature dermatologist credentials prominently, and offer a first-time user discount. |
-| **Compliance**| **[HIGH RISK]** Mishandling of PHI creates GDPR liability. | Enforce application-layer encryption on all PHI. Implement strict, role-based access control. Consult with legal experts throughout development. |
-| **Resource** | Teledermatology service becomes a bottleneck. | For MVP, partner with a small group of dermatologists and cap daily consultations. Build a scalable onboarding process for future phases. |
-
-## 11. Future Scope & Roadmap Ideas
--   E-commerce integration with retailers like Hebe/Rossmann.
--   AR Product Try-On feature.
--   Community platform for users.
--   B2B white-label solution for clinics.
-
-## 12. Business & Operational Readiness
--   **Go-to-Market Strategy:**
-    -   **Beta Testing:** Closed beta with 50-100 Polish users.
-    -   **Launch Strategy:** Focus on the Polish market via influencer collaborations and targeted social media ads.
--   **Customer Support Plan:**
-    -   **Channel:** `support@skinova.app`.
-    -   **SLA:** 24-hour target response time.
--   **Key Performance Indicators (KPIs):**
-    1.  **Activation Rate:** % of signups completing their first scan.
-    2.  **Scan-to-Consultation Conversion Rate:** % of free users purchasing a consultation.
-    3.  **Weekly Active Users (WAU).**
-    4.  **User Retention (Cohort Analysis).**
-
----
----
+| **Database** | | |
+| `DATABASE_URL` | Connection string for PostgreSQL. | `postgresql://user:pass@host:port/db` |
+| **Authentication & Storage**| | |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL of your Supabase project. | `https://your-project.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`| Public "anon" key for Supabase. | `ey...` |
+| `SUPABASE_SERVICE_ROLE_KEY` | **SECRET:** The service role key for backend operations like generating signed URLs. | `ey...` |
+| `NEXT_PUBLIC_SKIN_SCANS_BUCKET`| Name of the private Supabase Storage bucket. | `skin-scans` |
+| **Security** | | |
+| `APP_ENCRYPTION_KEY` | **CRITICAL:** 32-byte Base64 encoded key for data encryption. | `AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=` |
+| **AI Providers** | | |
+| `AI_PROVIDER` | The primary provider for generation tasks. | `gemini` |
+| `GEMINI_API_KEY_1` | API key for Google Gemini. Use `_2`, `_3` for more keys. | `AIza...` |
+| **Billing** | | |
+| `STRIPE_SECRET_KEY` | Secret key for your Stripe account. | `sk_test_...` |
+| `STRIPE_WEBHOOK_SECRET` | Secret for verifying Stripe webhooks. | `whsec_...` |
+| `STRIPE_PRO_PRICE_ID` | Price ID for the "Pro" subscription plan. | `price_...` |
+| `CONSULTATION_PRICE_ID` | The Stripe Price ID for a single pay-per-use consultation. | `price_...` |
+| **Email & Cron** | | |
+| `RESEND_API_KEY` | API key for Resend email service. | `re_...` |
+| `CRON_SECRET` | A secret key to authorize cron job requests. | `your-secure-random-string` |
+| **Monitoring & Analytics** | | |
+| `NEXT_PUBLIC_SENTRY_DSN` | DSN for Sentry error monitoring. | `https://...` |
+| `SENTRY_ORG` | Your Sentry organization slug. | `your-org` |
+| `SENTRY_PROJECT` | Your Sentry project slug. | `your-project` |
+| `NEXT_PUBLIC_POSTHOG_KEY` | Public key for PostHog analytics. | `phc_...` |
+| `NEXT_PUBLIC_POSTHOG_HOST` | URL for your PostHog instance. | `https://app.posthog.com` |
