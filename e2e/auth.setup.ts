@@ -1,12 +1,10 @@
-
 import { test as setup, expect } from "@playwright/test";
 
 const authFile = ".auth/user.json";
 
 setup("authenticate", async ({ page }) => {
   // This setup assumes a test user exists in the database.
-  // For a real-world scenario, you would seed this user in a test-specific database.
-  // The credentials should be stored in environment variables, not hardcoded.
+  // The credentials should be stored in environment variables.
   const testUserEmail = process.env.TEST_USER_EMAIL || "test@example.com";
   const testUserPassword =
     process.env.TEST_USER_PASSWORD || "PasswordForTesting123!";
@@ -25,22 +23,32 @@ setup("authenticate", async ({ page }) => {
     await page.getByRole("button", { name: "Accept" }).click();
   }
 
-  // Programmatically ensure the user is onboarded to prevent the wizard from appearing.
-  // This makes subsequent tests stable and independent of the onboarding flow.
+  // Programmatically ensure the user has completed the skin profile onboarding.
   await page.request.post("/api/user/onboard", {
     data: {
-      nativeLanguage: "english",
-      targetLanguage: "spanish",
-      writingStyle: "Casual",
-      writingPurpose: "Personal",
-      selfAssessedLevel: "Intermediate",
+      skinType: "NORMAL",
+      primaryConcern: "Redness",
     },
   });
-
+  
   await page.request.post("/api/user/complete-onboarding");
 
-  // Reload the page to ensure the client-side state (like react-query cache)
-  // is updated with the now-onboarded user profile.
+  // Programmatically create a scan and trigger its analysis for the test user.
+  const scanResponse = await page.request.post("/api/scan", {
+    data: {
+      imageUrl: 'https://via.placeholder.com/150',
+      notes: 'E2E test scan'
+    }
+  });
+  const scan = await scanResponse.json();
+  await page.request.post(`/api/scan/analyze`, {
+    data: {
+      scanId: scan.id
+    }
+  });
+
+
+  // Reload the page to ensure client-side state is updated.
   await page.reload();
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
     timeout: 20000,

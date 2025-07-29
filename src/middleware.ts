@@ -10,9 +10,6 @@ export async function middleware(request: NextRequest) {
     return new NextResponse("Server configuration error.", { status: 500 });
   }
 
-  // NOTE: Nonce logic has been removed as it conflicts with 'unsafe-inline' needed by libraries.
-  // We will rely on a host-based policy, which is a common and secure practice for Next.js apps.
-
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -55,9 +52,9 @@ export async function middleware(request: NextRequest) {
 
   const protectedRoutes = [
     "/dashboard",
-    "/journal",
-    "/study",
-    "/translator",
+    "/scan",
+    "/routine",
+    "/progress",
     "/settings",
     "/admin",
   ];
@@ -97,8 +94,7 @@ export async function middleware(request: NextRequest) {
     default-src 'self';
     script-src 'self' 'unsafe-inline' https://*.posthog.com;
     style-src 'self' 'unsafe-inline';
-    img-src 'self' data: https:;
-    media-src 'self' data:;
+    img-src 'self' data: ${supabaseUrl.origin};
     connect-src 'self' ${supabaseUrl.origin} wss://${supabaseUrl.host} ${
       sentryHost ? `https://${sentryHost}` : ""
     } https://*.posthog.com https://vitals.vercel-insights.com;
