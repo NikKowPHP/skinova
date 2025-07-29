@@ -18,8 +18,8 @@ async function main() {
   console.log("Seeded initial system settings.");
 
   // --- Admin User ---
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@skinova.app";
-  const adminUserId = process.env.ADMIN_USER_ID || "00000000-0000-0000-0000-000000000000";
+  const adminEmail = process.env.ADMIN_EMAIL || "kent720p@gmail.com";
+  const adminUserId = process.env.ADMIN_USER_ID || "65e6deb7-5a6f-49ee-bed6-42bbf354a05a";
   
   const adminUser = await prisma.user.upsert({
       where: { email: adminEmail },

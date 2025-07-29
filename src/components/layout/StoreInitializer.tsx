@@ -6,8 +6,8 @@ import { useAuthStore } from "@/lib/stores/auth.store";
 import { useOnboardingStore } from "@/lib/stores/onboarding.store";
 import {
   useUserProfile,
-  useJournalHistory,
-  useStudyDeck,
+  // useJournalHistory,
+  // useStudyDeck,
 } from "@/lib/hooks/data";
 import { useLanguageStore } from "@/lib/stores/language.store";
 

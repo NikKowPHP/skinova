@@ -13,3 +13,5 @@
 - [x] Fix missing UI components from initial Phase I implementation
 - [x] Fix missing imports on admin page to finalize Phase I
 - [x] Implement Phase J: Final Testing & Deployment Preparation
+- [x] Create run.md file with instructions for obtaining environment keys
+- [x] Update app_description.md to include undocumented features
