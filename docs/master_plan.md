@@ -52,7 +52,7 @@ This document outlines the high-level, phased plan for building the **Skinova** 
 
 ---
 
-### `[ ]` Phase G: Monetization & Billing Integration
+### `[x]` Phase G: Monetization & Billing Integration
 
 **Goal:** Implement the complete monetization lifecycle by integrating with Stripe. This includes creating checkout sessions for both **Pro tier subscriptions** and **pay-per-use teledermatology consultations**, providing a customer portal for management, and building a secure webhook endpoint to synchronize billing status with the application database.
 

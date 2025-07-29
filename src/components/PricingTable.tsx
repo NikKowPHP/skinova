@@ -19,7 +19,7 @@ export function PricingTable() {
   const checkoutMutation = useCreateCheckoutSession();
 
   const handleCheckout = (priceId: string) => {
-    checkoutMutation.mutate(priceId, {
+    checkoutMutation.mutate({ priceId }, {
       onSuccess: (response) => {
         if (response.url) {
           window.location.href = response.url;
