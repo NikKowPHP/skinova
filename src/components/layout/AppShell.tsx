@@ -21,6 +21,7 @@ import { useAuthStore } from "@/lib/stores/auth.store";
 import { useOnboardingStore } from "@/lib/stores/onboarding.store";
 import { useCompleteOnboarding } from "@/lib/hooks/data";
 import Spinner from "../ui/Spinner";
+import { SkinovaLogo } from "../SkinovaLogo";
 
 function AppFooter() {
   return (
@@ -252,8 +253,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col min-h-screen">
       <nav className="bg-background/80 backdrop-blur-lg border-b sticky top-0 z-40">
         <div className="container mx-auto flex justify-between items-center h-16">
-          <Link href="/" className="text-lg font-bold">
-            Skinova
+          <Link href="/">
+            <SkinovaLogo />
           </Link>
           <div className="space-x-2 sm:space-x-4 flex items-center">
             <div className="hidden sm:flex items-center space-x-4">

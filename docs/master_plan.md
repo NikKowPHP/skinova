@@ -20,7 +20,7 @@ This document outlines the high-level, phased plan for building the **Skinova** 
 
 ---
 
-### `[ ]` Phase C: Theming & Visual Polish
+### `[x]` Phase C: Theming & Visual Polish
 
 **Goal:** Implement the application's design system, including light/dark mode functionality, typography, color palettes, and spacing. Conduct a full visual review to refine styling, ensuring a cohesive and polished look and feel across all components and pages, reflecting the Skinova brand.
 

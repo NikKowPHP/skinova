@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Home, ScanFace, ListOrdered, BarChart3, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/stores/auth.store";
+import { SkinovaLogo } from "../SkinovaLogo";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -21,8 +22,8 @@ export function DesktopSidebar() {
   return (
     <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border">
       <div className="flex items-center h-16 border-b px-6">
-        <Link href="/" className="text-lg font-bold">
-          Skinova
+        <Link href="/">
+          <SkinovaLogo />
         </Link>
       </div>
       <div className="flex-1 p-4">

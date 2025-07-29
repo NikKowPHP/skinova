@@ -1,6 +1,6 @@
 import React from "react";
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers";
 import { CookieBanner } from "@/components/CookieBanner";
@@ -9,19 +9,14 @@ import StoreInitializer from "@/components/layout/StoreInitializer";
 import { Toaster } from "@/components/ui/toaster";
 import { PostHogProvider } from "@/providers/PostHogProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
-  title: "Lexity - Language Learning",
-  description: "AI-powered language learning through writing",
+  title: "Skinova - AI-Powered Skincare",
+  description: "Personalized skincare routines through AI-driven image analysis.",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -46,7 +41,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Lexity",
+    title: "Skinova",
   },
 };
 
@@ -65,9 +60,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${inter.variable} font-sans antialiased`}>
         <Providers>
           <PostHogProvider>
             <StoreInitializer />

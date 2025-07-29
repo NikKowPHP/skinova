@@ -2,3 +2,4 @@
 - [x] Correct oversights from initial Phase A implementation (icons, hooks, tests)
 - [x] Implement Phase B: Static Component Implementation
 - [x] Fix missed `SkinProfileWizard` integration from Phase B
+- [x] Implement Phase C: Theming & Visual Polish
