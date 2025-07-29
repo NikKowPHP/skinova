@@ -15,3 +15,4 @@
 - [x] Implement Phase J: Final Testing & Deployment Preparation
 - [x] Create run.md file with instructions for obtaining environment keys
 - [x] Update app_description.md to include undocumented features
+- [x] Remove unused files inherited from Lexity framework

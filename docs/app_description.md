@@ -1,5 +1,3 @@
-
-
 # Skinova Technical Application Description (v1.5)
 
 ### *An Adaptation of the Lexity Framework*
@@ -40,7 +38,7 @@ The application is built around four primary journeys:
 - This allows users to correlate their `Routine` adherence with tangible visual progress.
 
 ### D. Admin & Support Journey
-- An administrative journey allows authorized staff to manage user accounts, view consultation histories, and handle support requests via a dedicated `/admin` dashboard. This role is protected and requires a specific subscription tier (`ADMIN`) set in the database.
+- An administrative journey allows authorized staff to manage user accounts, view consultation histories, handle support requests, and **manage application-wide feature flags via a `SystemSetting` module**. This is all handled through a dedicated `/admin` dashboard, protected by a specific `ADMIN` subscription tier. A key initial feature flag is the **"Early Adopter Mode,"** which automatically grants new users a "PRO" tier subscription when enabled.
 
 ## 3. Technical Architecture
 
@@ -101,7 +99,8 @@ The new user experience is a stateful, guided tour managed by `src/lib/stores/on
 - **`COMPLETED`:** The flow is finalized and the user's profile is marked `onboardingCompleted=true`.
 
 ### G. Scheduled & Background Tasks
-- A weekly cron job (`/api/cron/scan-reminder`) is configured to send users an email notification, encouraging them to perform their weekly scan and maintain their progress log. This is secured via a `CRON_SECRET` environment variable.
+- A weekly **scan reminder** cron job (`/api/cron/scan-reminder`) is configured to send users an email notification, encouraging them to perform their weekly scan and maintain their progress log. This is secured via a `CRON_SECRET` environment variable.
+- A weekly **progress report** cron job (`/api/cron/weekly-report`) is implemented to send users a summary of their progress.
 
 ## 4. Data Models
 The database schema (`prisma/schema.prisma`) is designed around the core user journey.
@@ -114,6 +113,7 @@ The database schema (`prisma/schema.prisma`) is designed around the core user jo
 - **RoutineStep:** An action in a routine, linked to a `Product` (e.g., "AM - Cleanser").
 - **Product:** A generic product that can be recommended in a routine.
 - **Consultation:** Links a `User` and a `SkinScan` to a dermatologist for a paid review.
+- **SystemSetting:** A flexible key-value store for managing dynamic application settings and feature flags, such as the "Early Adopter Mode."
 
 ## 5. Key Directories & API Endpoints
 
@@ -135,7 +135,8 @@ The database schema (`prisma/schema.prisma`) is designed around the core user jo
 | Fetch Scan History | `GET /api/scan` | Retrieves a user's historical scans. |
 | Fetch Single Scan | `GET /api/scan/[id]` | Retrieves a specific scan and its analysis. |
 | Manage Routine | `PUT /api/routine` | Updates the user's active skincare routine. |
-| Initiate Consultation | `POST /api/consultation/checkout` | Creates a Stripe session for a new consultation. |
+| Initiate Consultation | `POST /api/billing/checkout` | Creates a Stripe session for a new consultation. |
+| Manage System Settings | `GET / PUT /api/admin/settings` | Allows admins to retrieve and update application feature flags. |
 | Export User Data | `GET /api/user/export` | Allows the user to download a JSON file of all their scan and analysis data. |
 
 ## 6. Setup & Configuration
