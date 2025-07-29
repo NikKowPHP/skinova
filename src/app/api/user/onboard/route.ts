@@ -2,6 +2,13 @@ import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
+import { z } from "zod";
+import { SkinType } from "@prisma/client";
+
+const onboardingSchema = z.object({
+  skinType: z.nativeEnum(SkinType),
+  primaryConcern: z.string().min(1),
+});
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -12,37 +19,19 @@ export async function POST(request: Request) {
   const body = await request.json();
   logger.info(`/api/user/onboard - POST - User: ${user.id}`, body);
 
-  const {
-    nativeLanguage,
-    targetLanguage,
-    writingStyle,
-    writingPurpose,
-    selfAssessedLevel,
-  } = body;
+  const parsed = onboardingSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
+  
+  const { skinType, primaryConcern } = parsed.data;
 
   try {
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
-        nativeLanguage,
-        writingStyle,
-        writingPurpose,
-        selfAssessedLevel,
-        defaultTargetLanguage: targetLanguage,
-        languageProfiles: {
-          upsert: {
-            where: {
-              userId_language: {
-                userId: user.id,
-                language: targetLanguage,
-              },
-            },
-            create: {
-              language: targetLanguage,
-            },
-            update: {},
-          },
-        },
+        skinType,
+        primaryConcern,
       },
     });
 

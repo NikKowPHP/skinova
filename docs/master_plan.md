@@ -36,7 +36,7 @@ This document outlines the high-level, phased plan for building the **Skinova** 
 
 ---
 
-### `[ ]` Phase E: Core Feature API Implementation
+### `[x]` Phase E: Core Feature API Implementation
 
 **Goal:** Build the essential backend API routes for all core user-facing features. This includes the complete business logic and CRUD operations for **Skin Scanning & Analysis**, **Personalized Routine Management**, **Progress Tracking**, and **User Data Portability (Export/Delete)**, ensuring all routes are protected by the Supabase authentication strategy.
 
