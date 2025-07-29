@@ -1,2 +1,3 @@
 - [x] Implement Phase A: Project Setup & Initial Scaffolding
 - [x] Correct oversights from initial Phase A implementation (icons, hooks, tests)
+- [x] Implement Phase B: Static Component Implementation

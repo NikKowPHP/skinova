@@ -1,12 +1,10 @@
-
-
 # **Skinova: Master Implementation Plan (v1)**
 
 This document outlines the high-level, phased plan for building the **Skinova** **Progressive Web App**. It serves as the single source of truth for the development roadmap, guiding the team through each stage of implementation from initial setup to deployment readiness. The successful completion of all phases will result in a fully functional, production-ready application.
 
 ## The Plan
 
-### `[ ]` Phase A: Project Setup & Initial Scaffolding
+### `[x]` Phase A: Project Setup & Initial Scaffolding
 
 **Goal:** Execute all initial project setup, including environment configuration, dependency installation, and boilerplate removal. Scaffold all primary pages, routes (`/scan`, `/routine`, `/progress`, `/settings`, `/admin`), and the foundational folder structure required for the application. The output will be a clean, prepared codebase ready for feature implementation.
 
@@ -14,7 +12,7 @@ This document outlines the high-level, phased plan for building the **Skinova** 
 
 ---
 
-### `[ ]` Phase B: Static Component Implementation
+### `[x]` Phase B: Static Component Implementation
 
 **Goal:** Systematically build all new, static, and reusable UI components required by Skinova's core features. This includes the `ScanUploadForm`, `AnalysisResultDisplay` with image overlay capabilities, `RoutineCard`, `ProgressChart`, and `ConsultationModal`. Integrate these components into the scaffolded pages from Phase A, **using mock or hardcoded data** to ensure the UI is developed independently and rapidly.
 
