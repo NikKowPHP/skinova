@@ -22,7 +22,7 @@ The application is built around four primary journeys:
 
 ### A. The Scan & Analysis Loop
 - A `User` uploads a `SkinScan` (an image of their face), potentially adding notes.
-- The scan is submitted to the `/api/scan/analyze` endpoint.
+- The scan is submitted to the `/api/analyze-scan` endpoint.
 - An `SkinAnalysis` record is created, containing structured data about identified skin concerns, overall skin health scores, and personalized recommendations.
 - The analysis will contain multiple `IdentifiedConcern` records (e.g., acne, dryness, hyperpigmentation).
 - The user can view their original image with highlighted areas corresponding to each identified concern.
@@ -131,7 +131,7 @@ The database schema (`prisma/schema.prisma`) is designed around the core user jo
 
 | Action | Endpoint | Description |
 | :--- | :--- | :--- |
-| Upload Scan & Request Analysis | `POST /api/scan/analyze` | Initiates the core analysis loop. |
+| Upload Scan & Request Analysis | `POST /api/analyze-scan` | Initiates the core analysis loop. |
 | Fetch Scan History | `GET /api/scan` | Retrieves a user's historical scans. |
 | Fetch Single Scan | `GET /api/scan/[id]` | Retrieves a specific scan and its analysis. |
 | Manage Routine | `PUT /api/routine` | Updates the user's active skincare routine. |

@@ -45,7 +45,6 @@ export async function GET(request: NextRequest) {
           subscriptionTier: true,
           subscriptionStatus: true,
           createdAt: true,
-          lastUsageReset: true,
         },
         where: whereClause,
         orderBy: {

@@ -41,7 +41,7 @@ setup("authenticate", async ({ page }) => {
     }
   });
   const scan = await scanResponse.json();
-  await page.request.post(`/api/scan/analyze`, {
+  await page.request.post(`/api/analyze-scan`, {
     data: {
       scanId: scan.id
     }

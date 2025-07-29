@@ -3,13 +3,16 @@ import { executeGeminiWithRotation } from "./gemini-executor";
 import { logger } from "../logger";
 import { getSkinAnalysisPrompt } from "./prompts/skinAnalysis.prompt";
 import { SkinType } from "@prisma/client";
-
-const GEMINI_MODELS = { gemini_2_5_flash : 'gemini-2.5-flash'}
+import * as crypto from "crypto";
+import * as os from "os";
+import * as path from "path";
+import * as fs from "fs";
+import { Part } from "@google/genai";
 
 export class GeminiQuestionGenerationService
   implements QuestionGenerationService
 {
-  private model: string = GEMINI_MODELS.gemini_2_5_flash;
+  private model: string = "gemini-2.5-flash"; // Use multi-modal capable model
   private jsonConfig = {
     responseMimeType: "application/json",
   };
@@ -18,26 +21,58 @@ export class GeminiQuestionGenerationService
 
   async analyzeSkinScan(
     imageBuffer: Buffer,
-    userProfile: { skinType: SkinType; primaryConcern: string; notes?: string | null }
+    userProfile: {
+      skinType: SkinType;
+      primaryConcern: string;
+      notes?: string | null;
+    },
   ): Promise<any> {
-    const prompt = getSkinAnalysisPrompt(userProfile.skinType, userProfile.primaryConcern, userProfile.notes);
-    
-    const imagePart = {
-      inlineData: {
-        data: imageBuffer.toString("base64"),
-        mimeType: "image/jpeg", // Assuming JPEG for now
-      },
-    };
+    const prompt = getSkinAnalysisPrompt(
+      userProfile.skinType,
+      userProfile.primaryConcern,
+      userProfile.notes,
+    );
+
+    const tempFileName = `${crypto.randomBytes(16).toString("hex")}.jpeg`;
+    const tempFilePath = path.join(os.tmpdir(), tempFileName);
 
     try {
-      const result = await executeGeminiWithRotation((client) =>
-        client.models.generateContent({
-          model: "gemini-1.5-flash", // Use a multi-modal capable model
-          config: this.jsonConfig,
-          contents: [{ role: "user", parts: [{ text: prompt }, imagePart] }],
-        }),
-      );
-      
+      await fs.promises.writeFile(tempFilePath, imageBuffer);
+
+      const result = await executeGeminiWithRotation(async (client) => {
+        let uploadedFileResponse: any;
+        try {
+          uploadedFileResponse = await client.files.upload({
+            file: tempFilePath,
+            config: { mimeType: "image/jpeg" },
+          });
+
+          const imagePart: Part = {
+            fileData: {
+              mimeType: uploadedFileResponse.mimeType!,
+              fileUri: uploadedFileResponse.uri!,
+            },
+          };
+
+          return await client.models.generateContent({
+            model: this.model,
+            config: this.jsonConfig,
+            contents: [{ role: "user", parts: [{ text: prompt }, imagePart] }],
+          });
+        } finally {
+          if (uploadedFileResponse?.name) {
+            await client.files
+              .delete({ name: uploadedFileResponse.name })
+              .catch((e) =>
+                logger.error(
+                  `Non-critical failure to delete Gemini temp file ${uploadedFileResponse.name}`,
+                  e,
+                ),
+              );
+          }
+        }
+      });
+
       const text = result.text;
       if (!text) {
         throw new Error("Empty response from Gemini API for skin scan analysis");
@@ -45,8 +80,26 @@ export class GeminiQuestionGenerationService
       const cleanedText = this.cleanJsonString(text);
       return JSON.parse(cleanedText);
     } catch (error) {
-      logger.error("Error analyzing skin scan with Gemini:", error);
+      logger.error("Error analyzing skin scan with Gemini:", {
+        err: error,
+        userProfile,
+      });
+      if (error instanceof Error && error.message.includes("JSON")) {
+        logger.warn(
+       
+          "Gemini response for analyzeSkinScan was not valid JSON.",
+        );
+      }
       throw error;
+    } finally {
+      try {
+        await fs.promises.unlink(tempFilePath);
+      } catch (unlinkError) {
+        logger.warn(
+          `Failed to unlink temporary file: ${tempFilePath}`,
+          unlinkError,
+        );
+      }
     }
   }
 

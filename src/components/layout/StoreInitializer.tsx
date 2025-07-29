@@ -45,12 +45,14 @@ function StoreInitializer() {
     }
 
     if (user && userProfile) {
-      if (!userProfile.onboardingCompleted && step === "INACTIVE") {
+      // If onboarding is NOT complete, we should always re-evaluate the step based on the latest data.
+      if (!userProfile.onboardingCompleted) {
         determineCurrentStep({
           userProfile: userProfile,
           scans: scans || [],
         });
       } else if (userProfile.onboardingCompleted && step !== "INACTIVE") {
+        // If onboarding IS complete, ensure we reset the store to INACTIVE.
         resetOnboarding();
       }
     }
@@ -62,7 +64,6 @@ function StoreInitializer() {
     isProfileLoading,
     areScansLoading,
     determineCurrentStep,
-    step,
     resetOnboarding,
   ]);
 

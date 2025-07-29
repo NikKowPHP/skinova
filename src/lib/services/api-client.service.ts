@@ -32,7 +32,7 @@ export const apiClient = {
   },
   analyze: {
     start: async (scanId: string) => {
-      const { data } = await axios.post("/api/scan/analyze", { scanId });
+      const { data } = await axios.post("/api/analyze-scan", { scanId });
       return data;
     },
   },

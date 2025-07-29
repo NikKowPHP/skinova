@@ -94,7 +94,7 @@ export async function middleware(request: NextRequest) {
     default-src 'self';
     script-src 'self' 'unsafe-inline' https://*.posthog.com;
     style-src 'self' 'unsafe-inline';
-    img-src 'self' data: ${supabaseUrl.origin};
+    img-src 'self' data: blob: ${supabaseUrl.origin};
     connect-src 'self' ${supabaseUrl.origin} wss://${supabaseUrl.host} ${
       sentryHost ? `https://${sentryHost}` : ""
     } https://*.posthog.com https://vitals.vercel-insights.com;

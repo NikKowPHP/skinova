@@ -24,3 +24,12 @@
 - [x] Implement production-ready image upload and analysis pipeline
 - [x] Fix "Object not found" error for seeded images by handling external URLs
 - [x] Fix infinite polling loop on scan analysis page
+- [x] Fix 404 error on POST /api/scan/analyze by relocating the endpoint
+- [x] Fix 500 error on admin users endpoint due to invalid field in Prisma query
+- [x] Add diagnostic logging to /api/analyze-scan to debug 404 error
+- [x] Fix 404 error during analysis caused by incomplete seeded user profile
+- [x] Fix CSP violation by allowing blob: URLs for image previews
+- [x] Fix infinite polling loop by refactoring mutation hooks to prevent `onSuccess` override
+- [x] Refactor Gemini image analysis to use file uploads instead of inline data
+- [x] Fix "Routine not found" error by using upsert logic for new users
+- [x] Fix onboarding flow getting stuck by invalidating queries and re-evaluating state
