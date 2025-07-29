@@ -3,10 +3,12 @@ import { prisma } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth";
 import { z } from "zod";
 import { decrypt, encrypt } from "@/lib/encryption";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
     try {
-      await authMiddleware(request); // Admin check
+      const { user } = await authMiddleware(request); // Admin check
+      logger.info(`Admin consultation GET request by ${user.id} for consultation ${params.id}`);
       const consultation = await prisma.consultation.findUnique({
         where: { id: params.id },
         include: { user: { select: { email: true } }, scan: true },
@@ -15,7 +17,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
           consultation.scan.imageUrl = decrypt(consultation.scan.imageUrl) ?? 'DECRYPTION_FAILED';
       }
       return NextResponse.json(consultation);
-    } catch (e) { return NextResponse.json({ error: (e as Error).message }, { status: 403 }); }
+    } catch (error) { 
+        logger.error(`Error fetching admin consultation ${params.id}`, error);
+        return NextResponse.json({ error: (error as Error).message }, { status: 403 }); 
+    }
 }
 
 const updateSchema = z.object({
@@ -25,7 +30,8 @@ const updateSchema = z.object({
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await authMiddleware(request); // Admin check
+    const { user } = await authMiddleware(request); // Admin check
+    logger.info(`Admin consultation PUT request by ${user.id} for consultation ${params.id}`);
     const body = await request.json();
     const parsed = updateSchema.safeParse(body);
     if (!parsed.success) return NextResponse.json({ error: parsed.error }, { status: 400 });
@@ -38,5 +44,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       },
     });
     return NextResponse.json(consultation);
-  } catch (e) { return NextResponse.json({ error: (e as Error).message }, { status: 403 }); }
+  } catch (error) { 
+    logger.error(`Error updating admin consultation ${params.id}`, error);
+    return NextResponse.json({ error: (error as Error).message }, { status: 403 }); 
+  }
 }

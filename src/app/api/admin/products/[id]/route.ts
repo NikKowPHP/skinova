@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 const productSchema = z.object({
   name: z.string().min(1),
@@ -12,7 +13,8 @@ const productSchema = z.object({
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await authMiddleware(request); // Admin check
+    const { user } = await authMiddleware(request); // Admin check
+    logger.info(`Admin product PUT request by ${user.id} for product ${params.id}`);
     const body = await request.json();
     const parsed = productSchema.safeParse(body);
     if (!parsed.success) return NextResponse.json({ error: parsed.error }, { status: 400 });
@@ -22,13 +24,20 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       data: parsed.data,
     });
     return NextResponse.json(product);
-  } catch (e) { return NextResponse.json({ error: (e as Error).message }, { status: 403 }); }
+  } catch (error) { 
+    logger.error(`Error updating admin product ${params.id}`, error);
+    return NextResponse.json({ error: (error as Error).message }, { status: 403 }); 
+  }
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await authMiddleware(request); // Admin check
+    const { user } = await authMiddleware(request); // Admin check
+    logger.info(`Admin product DELETE request by ${user.id} for product ${params.id}`);
     await prisma.product.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });
-  } catch (e) { return NextResponse.json({ error: (e as Error).message }, { status: 403 }); }
+  } catch (error) { 
+    logger.error(`Error deleting admin product ${params.id}`, error);
+    return NextResponse.json({ error: (error as Error).message }, { status: 403 }); 
+  }
 }

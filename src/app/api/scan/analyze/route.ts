@@ -33,12 +33,18 @@ export async function POST(req: NextRequest) {
     const imagePath = decrypt(scan.imageUrl);
     if (!imagePath) throw new Error("Failed to decrypt image path.");
 
+    let imageBuffer: Buffer;
+
+    logger.info(`Fetching image for analysis from Supabase Storage path: ${imagePath}`);
     const { data: fileData, error: downloadError } = await supabaseAdmin.storage
       .from(process.env.NEXT_PUBLIC_SKIN_SCANS_BUCKET!)
       .download(imagePath);
-    if (downloadError) throw new Error(`Failed to download image from storage: ${downloadError.message}`);
     
-    const imageBuffer = Buffer.from(await fileData.arrayBuffer());
+    if (downloadError) {
+      logger.error(`Failed to download image from storage for scan ${scanId}`, downloadError);
+      throw new Error(`Failed to download image from storage: ${downloadError.message}`);
+    }
+    imageBuffer = Buffer.from(await fileData.arrayBuffer());
 
     const aiService = getQuestionGenerationService();
     const analysisResult = await aiService.analyzeSkinScan(imageBuffer, {
@@ -75,7 +81,7 @@ export async function POST(req: NextRequest) {
     
     return NextResponse.json(newAnalysis);
   } catch (error) {
-    logger.error("Error in /api/scan/analyze", { message: (error as Error).message });
+    logger.error("Error in /api/scan/analyze", error);
     return NextResponse.json({ error: "Failed to analyze scan" }, { status: 500 });
   }
 }

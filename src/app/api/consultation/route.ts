@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  logger.info(`Fetching consultations for user ${user.id}`);
   try {
     const consultations = await prisma.consultation.findMany({
       where: { userId: user.id },
@@ -24,8 +25,8 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(decryptedConsultations);
-  } catch(e) {
-    logger.error("Failed to fetch consultations", e);
+  } catch(error) {
+    logger.error(`Failed to fetch consultations for user ${user.id}`, error);
     return NextResponse.json({ error: "Could not retrieve consultation history." }, { status: 500 });
   }
 }

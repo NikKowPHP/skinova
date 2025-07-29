@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    logger.info(`Fetching progress analytics for user ${user.id}`);
 
     const analyses = await prisma.skinAnalysis.findMany({
       where: { scan: { userId: user.id } },
@@ -48,7 +49,7 @@ export async function GET(req: NextRequest) {
       progressOverTime,
     });
   } catch (error) {
-    logger.error("Error fetching analytics:", error);
+    logger.error("Error fetching progress analytics:", error);
     return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 500 });
   }
 }

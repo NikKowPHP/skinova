@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
 import { encrypt, decrypt } from "@/lib/encryption";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 // GET Handler for scan history
 export async function GET(req: NextRequest) {
@@ -11,28 +12,47 @@ export async function GET(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const scans = await prisma.skinScan.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      imageUrl: true,
-      createdAt: true,
-      analysis: { select: { overallScore: true } },
-    },
-  });
+  logger.info(`Fetching scan history for user ${user.id}`);
+  try {
+    const scans = await prisma.skinScan.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        imageUrl: true,
+        createdAt: true,
+        analysis: { select: { overallScore: true } },
+      },
+    });
 
-  const decryptedScans = scans.map(scan => {
-    const decryptedUrl = decrypt(scan.imageUrl);
-    return { ...scan, imageUrl: decryptedUrl };
-  });
+    const decryptedScans = await Promise.all(scans.map(async (scan) => {
+        const decryptedPath = decrypt(scan.imageUrl);
+        if (!decryptedPath) {
+            return { ...scan, imageUrl: null };
+        }
+        
+        const { data, error } = await supabaseAdmin.storage
+            .from(process.env.NEXT_PUBLIC_SKIN_SCANS_BUCKET!)
+            .createSignedUrl(decryptedPath, 60 * 5); // 5 minute expiry for list view
 
-  return NextResponse.json(decryptedScans);
+        if (error) {
+            logger.error(`Failed to create signed URL for scan ${scan.id} in history view`, error);
+            return { ...scan, imageUrl: null };
+        }
+
+        return { ...scan, imageUrl: data.signedUrl };
+    }));
+
+    return NextResponse.json(decryptedScans);
+  } catch (error) {
+    logger.error(`Failed to fetch scan history for user ${user.id}`, error);
+    return NextResponse.json({ error: "Failed to fetch scan history" }, { status: 500 });
+  }
 }
 
 // POST Handler for creating a new scan
 const createScanSchema = z.object({
-    imageUrl: z.string().url(),
+    imageUrl: z.string(), // Now expects a path, not a URL
     notes: z.string().optional(),
 });
 

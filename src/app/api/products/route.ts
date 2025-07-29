@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
 export async function GET() {
+  logger.info("Fetching product catalog");
   try {
     const products = await prisma.product.findMany({
       orderBy: { type: 'asc' },

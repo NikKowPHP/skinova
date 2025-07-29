@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 async function handleSubscriptionCheckout(session: Stripe.Checkout.Session) {
   const subscriptionId = session.subscription as string;
   if (!session.customer || !subscriptionId) {
-    logger.warn("Missing customer or subscription in checkout session", { session });
+    logger.warn("Webhook: Missing customer or subscription in checkout session", { session });
     return;
   }
 
@@ -73,7 +73,7 @@ async function handleSubscriptionCheckout(session: Stripe.Checkout.Session) {
     where: { stripeCustomerId: session.customer as string },
     data: { subscriptionTier: tier, subscriptionStatus: "ACTIVE" },
   });
-  logger.info(`Subscription started for customer: ${session.customer}`);
+  logger.info(`Webhook: Subscription started for customer: ${session.customer}`, { tier });
 }
 
 async function handleConsultationCheckout(session: Stripe.Checkout.Session) {
@@ -81,7 +81,7 @@ async function handleConsultationCheckout(session: Stripe.Checkout.Session) {
   const stripePaymentId = session.payment_intent as string;
   
   if (!userId || !scanId || !stripePaymentId) {
-      logger.error("Missing metadata for consultation checkout", { session });
+      logger.error("Webhook: Missing metadata for consultation checkout", { session });
       return;
   }
 
@@ -93,7 +93,7 @@ async function handleConsultationCheckout(session: Stripe.Checkout.Session) {
           status: 'PENDING', // Initial status for a new consultation
       }
   });
-  logger.info(`Consultation created for user ${userId} and scan ${scanId}`);
+  logger.info(`Webhook: Consultation created for user ${userId} and scan ${scanId}`);
 }
 
 async function handleSubscriptionChange(subscription: Stripe.Subscription) {
@@ -112,5 +112,5 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
             subscriptionStatus: subscription.status.toUpperCase(),
         }
     });
-    logger.info(`Subscription updated for customer: ${customerId}`);
+    logger.info(`Webhook: Subscription updated for customer: ${customerId}`, { status: subscription.status, tier });
 }

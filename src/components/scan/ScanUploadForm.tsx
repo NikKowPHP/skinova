@@ -6,30 +6,71 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { UploadCloud, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCreateScan, useAnalyzeScan } from "@/lib/hooks/data";
+import { useAuthStore } from '@/lib/stores/auth.store';
+import { useToast } from '../ui/use-toast';
+import { createClient } from '@/lib/supabase/client';
 
 export const ScanUploadForm = () => {
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
   const router = useRouter();
+  const { toast } = useToast();
+  const authUser = useAuthStore((state) => state.user);
   const createScanMutation = useCreateScan();
   const analyzeScanMutation = useAnalyzeScan();
 
-  const handleAnalyzeClick = () => {
-    // In a real app, this would come from Supabase Storage upload
-    const mockImageUrl = 'https://images.unsplash.com/photo-1580894908361-967195033215?q=80&w=2070&auto=format&fit=crop';
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
 
-    createScanMutation.mutate({ imageUrl: mockImageUrl, notes }, {
-      onSuccess: (newScan) => {
-        analyzeScanMutation.mutate(newScan.id, {
-          onSuccess: () => {
-            router.push(`/scan/${newScan.id}`);
-          }
-        });
+  const handleAnalyzeClick = async () => {
+    if (!imageFile || !authUser) {
+      toast({ variant: "destructive", title: "Error", description: "Please select an image to upload." });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const supabase = createClient();
+      const fileExt = imageFile.name.split('.').pop();
+      const filePath = `public/${authUser.id}/${crypto.randomUUID()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(process.env.NEXT_PUBLIC_SKIN_SCANS_BUCKET!)
+        .upload(filePath, imageFile);
+
+      if (uploadError) {
+        throw uploadError;
       }
-    });
+      
+      setIsUploading(false);
+
+      createScanMutation.mutate({ imageUrl: filePath, notes }, {
+        onSuccess: (newScan) => {
+          analyzeScanMutation.mutate(newScan.id, {
+            onSuccess: () => {
+              router.push(`/scan/${newScan.id}`);
+            }
+          });
+        }
+      });
+
+    } catch (error) {
+      setIsUploading(false);
+      toast({ variant: "destructive", title: "Upload Failed", description: (error as Error).message });
+    }
   };
   
-  const isProcessing = createScanMutation.isPending || analyzeScanMutation.isPending;
+  const isProcessing = isUploading || createScanMutation.isPending || analyzeScanMutation.isPending;
+  const buttonText = isUploading ? "Uploading..." : "Analyzing...";
 
   return (
     <Card>
@@ -47,7 +88,7 @@ export const ScanUploadForm = () => {
               <p className="text-xs">PNG, JPG, or WEBP</p>
             </div>
           )}
-          <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" />
+          <input type="file" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" />
         </div>
         <Textarea
           placeholder="Add any notes about your skin today (optional)..."
@@ -58,8 +99,14 @@ export const ScanUploadForm = () => {
       </CardContent>
       <CardFooter>
         <Button className="w-full" onClick={handleAnalyzeClick} disabled={isProcessing}>
-          {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isProcessing ? "Analyzing..." : "Analyze My Skin"}
+          {isProcessing ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {buttonText}
+            </>
+          ) : (
+            "Analyze My Skin"
+          )}
         </Button>
       </CardFooter>
     </Card>

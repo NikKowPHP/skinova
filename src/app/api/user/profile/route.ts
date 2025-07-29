@@ -11,24 +11,31 @@ export async function GET() {
   if (!user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  
+  logger.info(`Fetching profile for user ${user.id}`);
+  try {
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email },
+      select: {
+        email: true,
+        skinType: true,
+        primaryConcern: true,
+        subscriptionTier: true,
+        subscriptionStatus: true,
+        onboardingCompleted: true,
+      },
+    });
 
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: {
-      email: true,
-      skinType: true,
-      primaryConcern: true,
-      subscriptionTier: true,
-      subscriptionStatus: true,
-      onboardingCompleted: true,
-    },
-  });
+    if (!dbUser) {
+      logger.warn(`User profile not found in DB for user ${user.id}`);
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
-  if (!dbUser) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    return NextResponse.json(dbUser);
+  } catch(error) {
+    logger.error(`Failed to fetch profile for user ${user.id}`, error);
+    return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 });
   }
-
-  return NextResponse.json(dbUser);
 }
 
 const profileUpdateSchema = z.object({

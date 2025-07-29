@@ -10,14 +10,23 @@ export async function GET(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const routine = await prisma.routine.findUnique({
-        where: { userId: user.id },
-        include: { steps: { include: { product: true }, orderBy: { stepNumber: 'asc' } } },
-    });
+    logger.info(`Fetching routine for user ${user.id}`);
+    try {
+        const routine = await prisma.routine.findUnique({
+            where: { userId: user.id },
+            include: { steps: { include: { product: true }, orderBy: { stepNumber: 'asc' } } },
+        });
 
-    if (!routine) return NextResponse.json({ error: "Routine not found" }, { status: 404 });
+        if (!routine) {
+            logger.warn(`Routine not found for user ${user.id}`);
+            return NextResponse.json({ error: "Routine not found" }, { status: 404 });
+        }
 
-    return NextResponse.json(routine);
+        return NextResponse.json(routine);
+    } catch (error) {
+        logger.error(`Failed to fetch routine for user ${user.id}`, error);
+        return NextResponse.json({ error: "Failed to fetch routine" }, { status: 500 });
+    }
 }
 
 // PUT Handler for updating the routine
@@ -38,6 +47,7 @@ export async function PUT(req: NextRequest) {
 
     try {
         const body = await req.json();
+        logger.info(`Updating routine for user ${user.id}`);
         const parsed = updateRoutineSchema.safeParse(body);
         if (!parsed.success) return NextResponse.json({ error: parsed.error }, { status: 400 });
 
@@ -63,7 +73,7 @@ export async function PUT(req: NextRequest) {
 
         return NextResponse.json(updatedRoutine);
     } catch (error) {
-        logger.error("/api/routine - PUT failed", error);
+        logger.error(`/api/routine - PUT failed for user ${user.id}`, error);
         return NextResponse.json({ error: "Failed to update routine" }, { status: 500 });
     }
 }
