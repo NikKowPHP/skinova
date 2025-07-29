@@ -1,6 +1,4 @@
-Of course. Here is the final, fully updated version of the Skinova technical application description, incorporating the details on administration, data portability, and scheduled tasks. This can be considered the definitive v1.5.
 
----
 
 # Skinova Technical Application Description (v1.5)
 
