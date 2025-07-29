@@ -80,6 +80,41 @@ export const apiClient = {
       return data;
     },
   },
+   admin: {
+    getUsers: async (params: {
+      search: string;
+      page: number;
+      limit: number;
+    }) => {
+      const { data } = await axios.get("/api/admin/users", { params });
+      return data;
+    },
+    updateSubscription: async (
+      userId: string,
+      payload: { subscriptionTier: string; subscriptionStatus?: string },
+    ) => {
+      const { data } = await axios.put(
+        `/api/admin/users/${userId}/subscription`,
+        payload,
+      );
+      return data;
+    },
+    getSettings: async () => {
+      const { data } = await axios.get("/api/admin/settings");
+      return data;
+    },
+    updateSetting: async (payload: { key: string; value: any }) => {
+      const { data } = await axios.put("/api/admin/settings", payload);
+      return data;
+    },
+    getProducts: async () => { const { data } = await axios.get("/api/admin/products"); return data; },
+    createProduct: async (payload: Omit<Product, 'id'>) => { const { data } = await axios.post("/api/admin/products", payload); return data; },
+    updateProduct: async (id: string, payload: Omit<Product, 'id'>) => { const { data } = await axios.put(`/api/admin/products/${id}`, payload); return data; },
+    deleteProduct: async (id: string) => { await axios.delete(`/api/admin/products/${id}`); },
+    getConsultations: async (params?: { status?: string }) => { const { data } = await axios.get("/api/admin/consultations", { params }); return data; },
+    getConsultation: async (id: string) => { const { data } = await axios.get(`/api/admin/consultations/${id}`); return data; },
+    updateConsultation: async (id: string, payload: { status: string; notes?: string }) => { const { data } = await axios.put(`/api/admin/consultations/${id}`, payload); return data; },
+  },
    billing: {
     createCheckoutSession: async (payload: { priceId: string; scanId?: string }) => {
       const { data } = await axios.post("/api/billing/checkout", payload);

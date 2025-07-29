@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ScanFace, ListOrdered, BarChart3, Settings } from "lucide-react";
+import { Home, ScanFace, ListOrdered, BarChart3, Settings, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUserProfile } from "@/lib/hooks/data";
 
-const navItems = [
+const baseNavItems = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/scan", label: "Scan", icon: ScanFace },
   { href: "/routine", label: "Routine", icon: ListOrdered },
@@ -15,6 +16,11 @@ const navItems = [
 
 export function BottomTabBar() {
   const pathname = usePathname();
+  const { data: userProfile } = useUserProfile();
+  
+  const navItems = userProfile?.subscriptionTier === 'ADMIN'
+    ? [...baseNavItems, { href: "/admin", label: "Admin", icon: Shield }]
+    : baseNavItems;
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-background/80 backdrop-blur-lg border-t border-border z-40">

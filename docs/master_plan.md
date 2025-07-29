@@ -68,7 +68,7 @@ This document outlines the high-level, phased plan for building the **Skinova** 
 
 ---
 
-### `[ ]` Phase I: Admin Dashboard & Internal Tooling
+### `[x]` Phase I: Admin Dashboard & Internal Tooling
 
 **Goal:** Develop the necessary internal tools for application management. This involves building a secure admin dashboard where authorized users can **manage user accounts and subscriptions**, **review teledermatology consultation requests**, and **manage the master `Product` catalog**.
 

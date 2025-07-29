@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, ScanFace, ListOrdered, BarChart3, Settings, LogOut } from "lucide-react";
+import { Home, ScanFace, ListOrdered, BarChart3, Settings, LogOut, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/stores/auth.store";
 import { SkinovaLogo } from "../SkinovaLogo";
+import { useUserProfile } from "@/lib/hooks/data";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -18,6 +19,7 @@ export function DesktopSidebar() {
   const pathname = usePathname();
   const { signOut } = useAuthStore();
   const router = useRouter();
+  const { data: userProfile } = useUserProfile();
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border">
@@ -48,6 +50,20 @@ export function DesktopSidebar() {
               </Link>
             );
           })}
+           {userProfile?.subscriptionTier === 'ADMIN' && (
+             <Link
+                href="/admin"
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  pathname.startsWith("/admin")
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+                )}
+              >
+                <Shield className="h-5 w-5" />
+                <span>Admin</span>
+              </Link>
+           )}
         </nav>
       </div>
       <div className="mt-auto p-4 border-t space-y-1">
