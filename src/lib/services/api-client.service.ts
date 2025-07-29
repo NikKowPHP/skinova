@@ -1,12 +1,8 @@
 import axios from "axios";
 import type { OnboardingData, ProfileUpdateData, ScanWithAnalysis, RoutineWithStepsAndProducts, ProgressAnalyticsData } from "@/lib/types";
+import { Product, Consultation } from "@prisma/client";
 
-// Placeholder types for Skinova - will be refined in Task 1.2
 interface SkinScan { id: string; [key: string]: any; }
-interface Routine { id: string; [key: string]: any; }
-interface Product { id: string; [key: string]: any; }
-interface Consultation { id: string; [key: string]: any; }
-interface Analytics { [key: string]: any; }
 
 export const apiClient = {
   profile: {
@@ -48,7 +44,7 @@ export const apiClient = {
         return data;
     },
     update: async (payload: { steps: any[] }) => {
-        const { data } = await axios.put<Routine>("/api/routine", payload);
+        const { data } = await axios.put<RoutineWithStepsAndProducts>("/api/routine", payload);
         return data;
     }
   },
@@ -81,6 +77,16 @@ export const apiClient = {
     },
     delete: async () => {
       const { data } = await axios.delete("/api/user");
+      return data;
+    },
+  },
+   billing: {
+    createCheckoutSession: async (payload: { priceId: string; scanId?: string }) => {
+      const { data } = await axios.post("/api/billing/checkout", payload);
+      return data;
+    },
+    createPortalSession: async () => {
+      const { data } = await axios.post("/api/billing/portal");
       return data;
     },
   },

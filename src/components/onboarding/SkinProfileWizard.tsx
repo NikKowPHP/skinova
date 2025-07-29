@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SUPPORTED_SKIN_TYPES, SUPPORTED_CONCERNS } from '@/lib/constants';
 import { useOnboardUser } from '@/lib/hooks/data';
 import type { OnboardingData } from '@/lib/types';
-import { SkinType } from '@prisma/client';
 
 interface SkinProfileWizardProps {
   isOpen: boolean;
@@ -15,18 +14,10 @@ interface SkinProfileWizardProps {
   onError?: (error: string) => void;
 }
 
-export const SkinProfileWizard = ({
-  isOpen,
-  onClose,
-  onComplete,
-  onError,
-}: SkinProfileWizardProps) => {
+export const SkinProfileWizard = ({ isOpen, onClose, onComplete, onError }: SkinProfileWizardProps) => {
   const [step, setStep] = React.useState(1);
-  const [formData, setFormData] = React.useState<OnboardingData>({
-    skinType: '' as SkinType,
-    primaryConcern: '',
-  });
-
+  const [formData, setFormData] = React.useState<Partial<OnboardingData>>({});
+  
   const { mutate: submitOnboarding, isPending } = useOnboardUser();
 
   const nextStep = () => setStep(step + 1);
@@ -37,7 +28,7 @@ export const SkinProfileWizard = ({
   };
 
   const handleComplete = () => {
-    submitOnboarding(formData, {
+    submitOnboarding(formData as OnboardingData, {
       onSuccess: onComplete,
       onError: (error) => onError?.(error.message),
     });
@@ -65,7 +56,7 @@ export const SkinProfileWizard = ({
         {step === 2 && (
           <div className="space-y-4">
             <label>What is your skin type?</label>
-            <Select onValueChange={(v) => handleChange('skinType', v as SkinType)} value={formData.skinType}>
+            <Select onValueChange={(value) => handleChange("skinType", value)} value={formData.skinType}>
               <SelectTrigger><SelectValue placeholder="Select skin type" /></SelectTrigger>
               <SelectContent>
                 {SUPPORTED_SKIN_TYPES.map(type => <SelectItem key={type.value} value={type.value}>{type.name}</SelectItem>)}
@@ -77,7 +68,7 @@ export const SkinProfileWizard = ({
         {step === 3 && (
            <div className="space-y-4">
             <label>What is your primary skin concern?</label>
-             <Select onValueChange={(v) => handleChange('primaryConcern', v)} value={formData.primaryConcern}>
+             <Select onValueChange={(value) => handleChange("primaryConcern", value)} value={formData.primaryConcern}>
               <SelectTrigger><SelectValue placeholder="Select primary concern" /></SelectTrigger>
               <SelectContent>
                 {SUPPORTED_CONCERNS.map(concern => <SelectItem key={concern.value} value={concern.value}>{concern.name}</SelectItem>)}

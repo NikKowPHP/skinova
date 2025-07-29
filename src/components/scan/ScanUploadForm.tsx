@@ -10,7 +10,6 @@ import { useCreateScan, useAnalyzeScan } from "@/lib/hooks/data";
 export const ScanUploadForm = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
-  
   const router = useRouter();
   const createScanMutation = useCreateScan();
   const analyzeScanMutation = useAnalyzeScan();
@@ -29,7 +28,7 @@ export const ScanUploadForm = () => {
       }
     });
   };
-
+  
   const isProcessing = createScanMutation.isPending || analyzeScanMutation.isPending;
 
   return (

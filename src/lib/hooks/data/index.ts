@@ -3,6 +3,8 @@ export * from "./useUpdateProfile";
 export * from "./useOnboardUser";
 export * from "./useCompleteOnboarding";
 export * from "./useDeleteAccount";
+export * from "./useCreateCheckoutSession";
+export * from "./useCreatePortalSession";
 // Skinova specific hooks
 export * from "./useScanHistory";
 export * from "./useScan";
