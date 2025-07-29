@@ -1,4 +1,3 @@
-
 "use client";
 import React from "react";
 import Link from "next/link";
@@ -6,15 +5,17 @@ import { useAuthStore } from "@/lib/stores/auth.store";
 import { ProfileForm } from "@/components/ProfileForm";
 import { AccountDeletion } from "@/components/AccountDeletion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowUpRight, LogOut, Mail } from "lucide-react";
-import { useCreatePortalSession, useUserProfile } from "@/lib/hooks/data";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowUpRight, LogOut, Mail, Stethoscope } from "lucide-react";
+import { useCreatePortalSession, useUserProfile, useConsultations } from "@/lib/hooks/data";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function SettingsPage() {
   const signOut = useAuthStore((state) => state.signOut);
-  const { data: profile, isLoading } = useUserProfile();
+  const { data: profile, isLoading: isProfileLoading } = useUserProfile();
+  const { data: consultations, isLoading: isConsultationsLoading } = useConsultations();
   const portalMutation = useCreatePortalSession();
   const router = useRouter();
 
@@ -28,6 +29,8 @@ export default function SettingsPage() {
     });
   };
 
+  const isLoading = isProfileLoading || isConsultationsLoading;
+
   return (
     <div className="container max-w-2xl mx-auto p-4 md:p-8 space-y-8">
       <h1 className="text-title-1">Settings</h1>
@@ -40,12 +43,8 @@ export default function SettingsPage() {
           <ProfileForm
             isLoading={isLoading}
             email={profile?.email}
-            nativeLanguage={profile?.nativeLanguage}
-            targetLanguage={profile?.defaultTargetLanguage}
-            writingStyle={profile?.writingStyle}
-            writingPurpose={profile?.writingPurpose}
-            selfAssessedLevel={profile?.selfAssessedLevel}
-            languageProfiles={profile?.languageProfiles}
+            skinType={profile?.skinType}
+            primaryConcern={profile?.primaryConcern}
           />
         </section>
 
@@ -98,6 +97,46 @@ export default function SettingsPage() {
                     <Link href="/pricing">View Pro Plans</Link>
                   </Button>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+        
+        <section>
+          <h2 className="text-subhead px-4 mb-2 text-muted-foreground uppercase">
+            Consultation History
+          </h2>
+          <Card>
+            <CardContent className="p-4">
+              {isLoading ? (
+                <Skeleton className="h-20 w-full" />
+              ) : !consultations || consultations.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  You haven't requested any consultations yet.
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Scan ID</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {consultations.map((c: any) => (
+                      <TableRow key={c.id}>
+                        <TableCell>{new Date(c.createdAt).toLocaleDateString()}</TableCell>
+                        <TableCell>{c.status}</TableCell>
+                        <TableCell>
+                          <Link href={`/scan/${c.scanId}`} className="underline hover:text-primary">
+                            View Scan
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </CardContent>
           </Card>

@@ -3,21 +3,34 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { UploadCloud, Image as ImageIcon, Loader2 } from "lucide-react";
+import { UploadCloud, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCreateScan, useAnalyzeScan } from "@/lib/hooks/data";
 
 export const ScanUploadForm = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
+  
+  const router = useRouter();
+  const createScanMutation = useCreateScan();
+  const analyzeScanMutation = useAnalyzeScan();
 
-  // In this phase, this is a mock function.
   const handleAnalyzeClick = () => {
-    setIsUploading(true);
-    setTimeout(() => {
-      setIsUploading(false);
-      alert("Mock analysis complete! (Phase B)");
-    }, 2000);
+    // In a real app, this would come from Supabase Storage upload
+    const mockImageUrl = 'https://images.unsplash.com/photo-1580894908361-967195033215?q=80&w=2070&auto=format&fit=crop';
+
+    createScanMutation.mutate({ imageUrl: mockImageUrl, notes }, {
+      onSuccess: (newScan) => {
+        analyzeScanMutation.mutate(newScan.id, {
+          onSuccess: () => {
+            router.push(`/scan/${newScan.id}`);
+          }
+        });
+      }
+    });
   };
+
+  const isProcessing = createScanMutation.isPending || analyzeScanMutation.isPending;
 
   return (
     <Card>
@@ -45,9 +58,9 @@ export const ScanUploadForm = () => {
         />
       </CardContent>
       <CardFooter>
-        <Button className="w-full" onClick={handleAnalyzeClick} disabled={isUploading}>
-          {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isUploading ? "Analyzing..." : "Analyze My Skin"}
+        <Button className="w-full" onClick={handleAnalyzeClick} disabled={isProcessing}>
+          {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isProcessing ? "Analyzing..." : "Analyze My Skin"}
         </Button>
       </CardFooter>
     </Card>

@@ -1,19 +1,49 @@
+'use client';
 import { RoutineStepCard } from "@/components/routine/RoutineStepCard";
-
-const mockAmRoutine = [
-  { step: 1, productType: 'Cleanser', productName: 'Gentle Hydrating Cleanser', instructions: 'Lather and rinse with lukewarm water.' },
-  { step: 2, productType: 'Serum', productName: 'Vitamin C Serum', instructions: 'Apply 2-3 drops to face and neck.' },
-  { step: 3, productType: 'Moisturizer', productName: 'Daily Hydration Lotion', instructions: 'Apply evenly to face.' },
-  { step: 4, productType: 'Sunscreen', productName: 'SPF 50+ Mineral Sunscreen', instructions: 'Apply generously 15 minutes before sun exposure.' },
-];
-
-const mockPmRoutine = [
-  { step: 1, productType: 'Cleanser', productName: 'Gentle Hydrating Cleanser', instructions: 'Lather and rinse with lukewarm water.' },
-  { step: 2, productType: 'Treatment', productName: 'Retinoid Cream 0.025%', instructions: 'Apply a pea-sized amount. Use 3x a week.' },
-  { step: 3, productType: 'Moisturizer', productName: 'Night Repair Cream', instructions: 'Apply evenly to face and neck.' },
-];
-
+import { useRoutine } from "@/lib/hooks/data/useRoutine";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+        
 export default function RoutinePage() {
+  const { data: routine, isLoading } = useRoutine();
+
+  if (isLoading) {
+    return (
+        <div className="container mx-auto p-4 space-y-8">
+            <Skeleton className="h-12 w-1/2" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+            </div>
+        </div>
+    )
+  }
+
+  if (!routine || routine.steps.length === 0) {
+    return (
+      <div className="container mx-auto p-4">
+        <Card className="text-center p-8">
+          <CardHeader>
+            <CardTitle>Your Routine Awaits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-6 text-muted-foreground">
+              Your personalized skincare routine will appear here after your first skin analysis is complete.
+            </p>
+            <Button asChild size="lg">
+              <Link href="/scan">Start First Scan</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const amRoutine = routine.steps.filter(s => s.timeOfDay === "AM");
+  const pmRoutine = routine.steps.filter(s => s.timeOfDay === "PM");
+
   return (
     <div className="container mx-auto p-4 space-y-8">
       <header>
@@ -23,11 +53,11 @@ export default function RoutinePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">AM Routine ☀️</h2>
-          {mockAmRoutine.map(step => <RoutineStepCard key={step.step} {...step} />)}
+          {amRoutine.map(step => <RoutineStepCard key={step.id} step={step.stepNumber} productType={step.product.type} productName={step.product.name} instructions={step.instructions} />)}
         </section>
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">PM Routine 🌙</h2>
-          {mockPmRoutine.map(step => <RoutineStepCard key={step.step} {...step} />)}
+          {pmRoutine.map(step => <RoutineStepCard key={step.id} step={step.stepNumber} productType={step.product.type} productName={step.product.name} instructions={step.instructions} />)}
         </section>
       </div>
     </div>
