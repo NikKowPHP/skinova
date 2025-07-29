@@ -28,7 +28,7 @@ This document outlines the high-level, phased plan for building the **Skinova** 
 
 ---
 
-### `[ ]` Phase D: Database Schema & Seeding
+### `[x]` Phase D: Database Schema & Seeding
 
 **Goal:** Establish the application's data layer. This involves implementing the final database schema using Prisma for all core models (`User`, `SkinScan`, `SkinAnalysis`, `IdentifiedConcern`, `Routine`, `RoutineStep`, `Product`, `Consultation`), running the initial database migration, and creating seed scripts to populate the database with essential starting data (e.g., the `Product` catalog, subscription plan details, an initial admin user).
 

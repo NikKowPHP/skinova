@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
-import { encrypt } from "../src/lib/encryption";
+import { PrismaClient, SkinType, ConcernSeverity } from "@prisma/client";
+import { encrypt } from "../src/lib/encryption"; // Import the encryption service
+
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Seeding database...");
+  console.log("Seeding Skinova database...");
 
   // --- Static System Settings ---
   await prisma.systemSetting.upsert({
@@ -16,269 +17,92 @@ async function main() {
   });
   console.log("Seeded initial system settings.");
 
-  // --- Comprehensive Test User Seeding ---
-  const testUserId = "f8d48b17-6aef-4411-8e6f-0fb9262241a1";
-  const testUserEmail = "nik.kowalev@gmail.com";
-
-  console.log(`Starting seed for test user: ${testUserEmail} (${testUserId})`);
-
-  // 1. Clean up existing data for this user to ensure idempotency
-  console.log("Cleaning up previous data for test user...");
-  await prisma.user.delete({ where: { id: testUserId } }).catch(() => {
-    console.log("Test user not found, skipping cleanup.");
+  // --- Admin User ---
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@skinova.app";
+  const adminUserId = process.env.ADMIN_USER_ID || "00000000-0000-0000-0000-000000000000";
+  
+  const adminUser = await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: {},
+      create: {
+          id: adminUserId,
+          supabaseAuthId: adminUserId,
+          email: adminEmail,
+          subscriptionTier: "ADMIN",
+          skinType: SkinType.NORMAL,
+          onboardingCompleted: true
+      }
   });
+  console.log(`Ensured admin user exists: ${adminEmail}`);
 
-  await prisma.$transaction(async (tx) => {
-    // 2. Create the User and their Language Profiles
-    console.log("Creating user and language profiles...");
-    const user = await tx.user.create({
+  // --- Seed a Default Routine for the Admin User ---
+  await prisma.routine.upsert({
+    where: { userId: adminUser.id },
+    update: {},
+    create: {
+      userId: adminUser.id,
+    },
+  });
+  console.log(`Ensured default routine exists for admin user.`);
+
+  // --- Seed a Mock Scan and Analysis for immediate UI testing ---
+  const existingScan = await prisma.skinScan.findFirst({ where: { userId: adminUser.id } });
+  if (!existingScan) {
+    const mockScan = await prisma.skinScan.create({
       data: {
-        id: testUserId,
-        email: testUserEmail,
-        supabaseAuthId: testUserId, // Use the same ID for simplicity in test env
-        nativeLanguage: "english",
-        defaultTargetLanguage: "spanish",
-        writingStyle: "Casual",
-        writingPurpose: "Personal",
-        selfAssessedLevel: "Intermediate",
-        onboardingCompleted: true,
-        languageProfiles: {
-          create: [
-            { language: "spanish", aiAssessedProficiency: 65.0 },
-            { language: "french", aiAssessedProficiency: 45.0 },
-          ],
-        },
-      },
+        userId: adminUser.id,
+        imageUrl: encrypt("https://images.unsplash.com/photo-1580894908361-967195033215?q=80&w=2070&auto=format&fit=crop"),
+        notes: encrypt("This is the first seeded scan for the admin user."),
+        analysis: {
+          create: {
+            overallScore: 88,
+            analysisJson: encrypt(JSON.stringify({ skinCondition: "Good", hydration: "Optimal" })),
+            rawAiResponse: encrypt(JSON.stringify({ message: "Mock AI response" })),
+            concerns: {
+              create: [
+                { name: "Mild Redness", severity: ConcernSeverity.MILD, description: "Slight inflammation detected on the cheek area." },
+                { name: "Dehydration", severity: ConcernSeverity.MODERATE, description: "Fine lines on the forehead indicate a lack of hydration." },
+              ]
+            }
+          }
+        }
+      }
     });
+    console.log(`Created mock scan and analysis (ID: ${mockScan.id}) for admin user.`);
+  }
 
-    // 3. Create Topics
-    console.log("Creating topics...");
-    const spanishTopic1 = await tx.topic.create({
-      data: {
-        userId: user.id,
-        title: "My Last Vacation",
-        targetLanguage: "spanish",
-      },
-    });
-    const spanishTopic2 = await tx.topic.create({
-      data: {
-        userId: user.id,
-        title: "A Favorite Childhood Memory",
-        targetLanguage: "spanish",
-        isMastered: true,
-      },
-    });
-    const frenchTopic1 = await tx.topic.create({
-      data: {
-        userId: user.id,
-        title: "My Favorite Food",
-        targetLanguage: "french",
-      },
-    });
-
-    // 4. Generate Time-Series Data for Analytics (30 days of entries)
-    console.log("Generating 30 days of historical journal data for Spanish...");
-    const entries = [];
-    let challengingMistake: any = null; // To store a mistake for practice attempts
-    let highScoringMistake: any = null; // To store a mistake for filtering test
-    let insufficientAttemptsMistake: any = null; // Mistake with <3 attempts
-
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const progressFactor = (30 - i) / 30; // 0.03 to 1.0
-
-      const journalEntry = await tx.journalEntry.create({
-        data: {
-          authorId: user.id,
-          topicId: i % 2 === 0 ? spanishTopic1.id : spanishTopic2.id,
-          content: encrypt(
-            `Este es mi diario del día ${30 - i}. Cada día mi español mejora un poco. Hoy he aprendido nuevas palabras.`,
-          ),
-          targetLanguage: "spanish",
-          createdAt: date,
-          updatedAt: date,
-        },
-      });
-
-      const baseScore = 40 + 40 * progressFactor; // Score from 40 to 80
-      const analysis = await tx.analysis.create({
-        data: {
-          entryId: journalEntry.id,
-          grammarScore: Math.min(95, baseScore + (Math.random() - 0.5) * 10),
-          phrasingScore: Math.min(95, baseScore + (Math.random() - 0.5) * 10),
-          vocabScore: Math.min(95, baseScore + (Math.random() - 0.5) * 10),
-          feedbackJson: encrypt(
-            `"Good progress on day ${30 - i}. Keep it up!"`,
-          ),
-          rawAiResponse: encrypt(JSON.stringify({ feedback: "Details..." })),
-        },
-      });
-
-      const mistake = await tx.mistake.create({
-        data: {
-          analysisId: analysis.id,
-          type: "grammar",
-          originalText: encrypt(`yo ser feliz (day ${30 - i})`),
-          correctedText: encrypt(`yo soy feliz (day ${30 - i})`),
-          explanation: encrypt(
-            "Incorrect conjugation of the verb 'ser' (to be).",
-          ),
-        },
-      });
-
-      // Designate specific mistakes for practice analytics testing
-      if (i === 28) challengingMistake = mistake; // Day 2, will get low scores
-      if (i === 27) highScoringMistake = mistake; // Day 3, will get high scores
-      if (i === 26) insufficientAttemptsMistake = mistake; // Day 4, will get <3 attempts
-    }
-
-    // 5. Seed Practice Attempts for the designated mistakes
-    console.log("Seeding practice attempts for analytics...");
-    if (challengingMistake) {
-      await tx.practiceAttempt.createMany({
-        data: [
-          {
-            mistakeId: challengingMistake.id,
-            userId: user.id,
-            score: 20,
-            isCorrect: false,
-            taskPrompt: "Translate: I am happy",
-            expectedAnswer: "Yo soy feliz",
-            userAnswer: "Yo ser feliz",
-            aiEvaluationJson: encrypt("{}"),
-          },
-          {
-            mistakeId: challengingMistake.id,
-            userId: user.id,
-            score: 30,
-            isCorrect: false,
-            taskPrompt: "Translate: I am happy",
-            expectedAnswer: "Yo soy feliz",
-            userAnswer: "Yo estoy feliz",
-            aiEvaluationJson: encrypt("{}"),
-          },
-          {
-            mistakeId: challengingMistake.id,
-            userId: user.id,
-            score: 40,
-            isCorrect: false,
-            taskPrompt: "Translate: I am happy",
-            expectedAnswer: "Yo soy feliz",
-            userAnswer: "Soy feliz",
-            aiEvaluationJson: encrypt("{}"),
-          },
-        ],
-      });
-    }
-
-    if (highScoringMistake) {
-      await tx.practiceAttempt.createMany({
-        data: [
-          {
-            mistakeId: highScoringMistake.id,
-            userId: user.id,
-            score: 90,
-            isCorrect: true,
-            taskPrompt: "...",
-            expectedAnswer: "...",
-            userAnswer: "...",
-            aiEvaluationJson: encrypt("{}"),
-          },
-          {
-            mistakeId: highScoringMistake.id,
-            userId: user.id,
-            score: 95,
-            isCorrect: true,
-            taskPrompt: "...",
-            expectedAnswer: "...",
-            userAnswer: "...",
-            aiEvaluationJson: encrypt("{}"),
-          },
-          {
-            mistakeId: highScoringMistake.id,
-            userId: user.id,
-            score: 100,
-            isCorrect: true,
-            taskPrompt: "...",
-            expectedAnswer: "...",
-            userAnswer: "...",
-            aiEvaluationJson: encrypt("{}"),
-          },
-        ],
-      });
-    }
+  // --- Product Catalog ---
+  console.log("Seeding product catalog...");
+  const products = [
+    // Cleansers
+    { name: 'Gentle Hydrating Cleanser', type: 'Cleanser', brand: 'BrandA', description: 'A mild, non-stripping cleanser for all skin types.' },
+    { name: 'Salicylic Acid Cleanser', type: 'Cleanser', brand: 'BrandB', description: 'An exfoliating cleanser for oily and acne-prone skin.' },
     
-    if (insufficientAttemptsMistake) {
-       await tx.practiceAttempt.createMany({
-        data: [
-          { mistakeId: insufficientAttemptsMistake.id, userId: user.id, score: 10, isCorrect: false, taskPrompt: "...", expectedAnswer: "...", userAnswer: "...", aiEvaluationJson: encrypt("{}") },
-          { mistakeId: insufficientAttemptsMistake.id, userId: user.id, score: 20, isCorrect: false, taskPrompt: "...", expectedAnswer: "...", userAnswer: "...", aiEvaluationJson: encrypt("{}") },
-        ],
-      });
-    }
+    // Serums
+    { name: 'Vitamin C Serum', type: 'Serum', brand: 'BrandA', description: 'A brightening antioxidant serum for daytime use.' },
+    { name: 'Hyaluronic Acid Serum', type: 'Serum', brand: 'BrandC', description: 'Provides intense hydration for dry and dehydrated skin.' },
+    
+    // Treatments
+    { name: 'Retinoid Cream 0.025%', type: 'Treatment', brand: 'BrandB', description: 'A prescription-strength retinoid for anti-aging and acne.' },
+    { name: 'Benzoyl Peroxide Gel 5%', type: 'Treatment', brand: 'BrandD', description: 'An effective spot treatment for inflammatory acne.' },
+    
+    // Moisturizers
+    { name: 'Daily Hydration Lotion', type: 'Moisturizer', brand: 'BrandA', description: 'A lightweight daily moisturizer with ceramides.' },
+    { name: 'Night Repair Cream', type: 'Moisturizer', brand: 'BrandC', description: 'A rich, nourishing cream for overnight skin repair.' },
+    
+    // Sunscreens
+    { name: 'SPF 50+ Mineral Sunscreen', type: 'Sunscreen', brand: 'BrandD', description: 'A broad-spectrum physical sunscreen for sensitive skin.' },
+    { name: 'SPF 30 Chemical Sunscreen', type: 'Sunscreen', brand: 'BrandB', description: 'A lightweight, non-greasy chemical sunscreen.' },
+  ];
 
-    // 6. Seed SRS Deck
-    console.log("Seeding SRS deck...");
-    const now = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(now.getDate() - 1);
-    const tomorrow = new Date();
-    tomorrow.setDate(now.getDate() + 1);
-
-    await tx.srsReviewItem.createMany({
-      data: [
-        {
-          userId: user.id,
-          type: "MISTAKE",
-          mistakeId: challengingMistake.id,
-          frontContent: "yo ser feliz",
-          backContent: "yo soy feliz",
-          context: "Incorrect conjugation of the verb 'ser' (to be).",
-          targetLanguage: "spanish",
-          nextReviewAt: yesterday, // Due for review
-        },
-        {
-          userId: user.id,
-          type: "TRANSLATION",
-          frontContent: "Hello",
-          backContent: "Hola",
-          targetLanguage: "spanish",
-          nextReviewAt: now, // Due for review
-        },
-        {
-          userId: user.id,
-          type: "PRACTICE_MISTAKE",
-          mistakeId: highScoringMistake.id,
-          frontContent: "Translate: They are happy",
-          backContent: "Ellos son felices",
-          targetLanguage: "spanish",
-          nextReviewAt: now, // Due for review
-        },
-        {
-          userId: user.id,
-          type: "TRANSLATION",
-          frontContent: "Goodbye",
-          backContent: "Adiós",
-          targetLanguage: "spanish",
-          nextReviewAt: tomorrow, // Not due yet
-        },
-      ],
+  for (const product of products) {
+    await prisma.product.upsert({
+      where: { name: product.name },
+      update: {},
+      create: product,
     });
-
-    // 7. Seed Suggested Topics
-    console.log("Seeding suggested topics...");
-    await tx.suggestedTopic.createMany({
-        data: [
-            { userId: user.id, title: "Describe your favorite movie in Spanish", targetLanguage: "spanish"},
-            { userId: user.id, title: "What are your goals for this year?", targetLanguage: "spanish"},
-            { userId: user.id, title: "Décris ta routine quotidienne", targetLanguage: "french"},
-        ]
-    })
-
-
-    console.log(`Seeding for user ${testUserEmail} completed successfully.`);
-  });
+  }
+  console.log(`Seeded ${products.length} products.`);
 }
 
 main()

@@ -1,4 +1,3 @@
-// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,140 +7,155 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum SrsItemType {
-  MISTAKE
-  TRANSLATION
-  PRACTICE_MISTAKE
+// ENUMS
+enum SkinType {
+  NORMAL
+  OILY
+  DRY
+  COMBINATION
+  SENSITIVE
 }
 
+enum ConcernSeverity {
+  MILD
+  MODERATE
+  SEVERE
+}
+
+// USER & AUTH
 model User {
-  id                    String    @id
-  email                 String    @unique
-  supabaseAuthId        String    @unique
-  nativeLanguage        String?
-  defaultTargetLanguage String?
-  writingStyle          String?
-  writingPurpose        String?
-  selfAssessedLevel     String?
-  status                String    @default("ACTIVE") // e.g., ACTIVE, DELETION_PENDING
-  lastUsageReset        DateTime? // Timestamp for resetting daily limits
-  onboardingCompleted   Boolean   @default(false)
+  id                 String    @id
+  email              String    @unique
+  supabaseAuthId     String    @unique
+  status             String    @default("ACTIVE") // e.g., ACTIVE, DELETION_PENDING
+
+  // Skin Profile
+  skinType           SkinType?
+  primaryConcern     String?
 
   // Monetization
   stripeCustomerId   String? @unique
   subscriptionTier   String  @default("FREE")
   subscriptionStatus String?
 
+  // Onboarding
+  onboardingCompleted Boolean @default(false)
+
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  // Relations
+  scans              SkinScan[]
+  routine            Routine?
+  consultations      Consultation[]
+}
+
+// CORE SCAN & ANALYSIS
+model SkinScan {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  imageUrl  String   @db.Text // Encrypted signed URL from storage
+  notes     String?  @db.Text // Encrypted user notes
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  topics           Topic[]
-  journalEntries   JournalEntry[]
-  srsItems         SrsReviewItem[]
-  languageProfiles LanguageProfile[]
-  suggestedTopics  SuggestedTopic[]
+  // Relations
+  analysis      SkinAnalysis?
+  consultations Consultation[]
 }
 
-model LanguageProfile {
-  id                    String @id @default(cuid())
-  userId                String
-  user                  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  language              String
-  aiAssessedProficiency Float  @default(2.0)
-  proficiencySubScores  Json?
+model SkinAnalysis {
+  id            String   @id @default(cuid())
+  scanId        String   @unique
+  scan          SkinScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, language])
+  // AI Output
+  overallScore  Int
+  analysisJson  String   @db.Text // Encrypted structured JSON with detailed analysis
+  rawAiResponse String   @db.Text // Encrypted raw AI response for debugging/retries
+
+  createdAt     DateTime @default(now())
+
+  // Relations
+  concerns      IdentifiedConcern[]
 }
 
-model Topic {
-  id             String         @id @default(cuid())
-  userId         String
-  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title          String
-  targetLanguage String?
-  isMastered     Boolean        @default(false)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  journalEntries JournalEntry[]
+model IdentifiedConcern {
+  id          String          @id @default(cuid())
+  analysisId  String
+  analysis    SkinAnalysis    @relation(fields: [analysisId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, title, targetLanguage])
+  name        String          // e.g., "Acne", "Hyperpigmentation"
+  severity    ConcernSeverity
+  description String          @db.Text
+
+  // For mapping to the image
+  boundingBoxJson String? // JSON string of coordinates for highlighting on the image
 }
 
-model JournalEntry {
-  id             String    @id @default(cuid())
-  authorId       String
-  author         User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  topicId        String
-  topic          Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  content        String    @db.Text
-  aidsUsage      Json?
-  targetLanguage String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  analysis       Analysis?
+// ROUTINE & PRODUCTS
+model Routine {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  steps     RoutineStep[]
 }
 
-model Analysis {
-  id            String       @id @default(cuid())
-  entryId       String       @unique
-  entry         JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
-  grammarScore  Int
-  phrasingScore Int
-  vocabScore    Int
-  feedbackJson  String       @db.Text
-  rawAiResponse String       @db.Text
-  createdAt     DateTime     @default(now())
-  mistakes      Mistake[]
-}
-
-model Mistake {
-  id               String            @id @default(cuid())
-  analysisId       String
-  analysis         Analysis          @relation(fields: [analysisId], references: [id], onDelete: Cascade)
-  type             String
-  originalText     String            @db.Text
-  correctedText    String            @db.Text
-  explanation      String            @db.Text
-  createdAt        DateTime          @default(now())
-  srsReviewItems   SrsReviewItem[]
-  practiceAttempts PracticeAttempt[]
-}
-
-model SrsReviewItem {
-  id             String      @id @default(cuid())
-  userId         String
-  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type           SrsItemType
-  frontContent   String
-  backContent    String
-  context        String?
-  mistakeId      String?
-  mistake        Mistake?    @relation(fields: [mistakeId], references: [id], onDelete: Cascade)
-  targetLanguage String?
-  nextReviewAt   DateTime
-  lastReviewedAt DateTime?
-  interval       Int         @default(1)
-  easeFactor     Float       @default(2.5)
-  createdAt      DateTime    @default(now())
-}
-
-model SuggestedTopic {
-  id             String   @id @default(cuid())
-  userId         String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title          String
-  targetLanguage String
-  createdAt      DateTime @default(now())
-
-  @@unique([userId, title, targetLanguage])
-}
-
-model ProcessedWebhook {
+model RoutineStep {
   id          String   @id @default(cuid())
-  eventId     String   @unique
-  type        String
-  processedAt DateTime @default(now())
-  createdAt   DateTime @default(now())
+  routineId   String
+  routine     Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
+
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+
+  stepNumber  Int
+  timeOfDay   String   // "AM" or "PM"
+  instructions String  @db.Text // e.g., "Apply a pea-sized amount"
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  name        String
+  brand       String?
+  type        String        // e.g., "Cleanser", "Serum", "Moisturizer"
+  description String        @db.Text
+
+  // Relations
+  routines    RoutineStep[]
+}
+
+// CONSULTATIONS (Pay-per-use)
+model Consultation {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scanId    String
+  scan      SkinScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  status    String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  stripePaymentId String? @unique
+  
+  notes     String? @db.Text // Encrypted notes from the dermatologist
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// UTILITY MODELS (Inherited from Lexity)
+model ProcessedWebhook {
+  id        String   @id @default(cuid())
+  eventId   String   @unique
+  type      String
+  createdAt DateTime @default(now())
 }
 
 model SystemSetting {
@@ -149,21 +163,4 @@ model SystemSetting {
   value     Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-model PracticeAttempt {
-  id               String   @id @default(cuid())
-  mistakeId        String
-  mistake          Mistake  @relation(fields: [mistakeId], references: [id], onDelete: Cascade)
-  userId           String
-  taskPrompt       String   @db.Text
-  expectedAnswer   String   @db.Text
-  userAnswer       String   @db.Text
-  aiEvaluationJson String   @db.Text
-  isCorrect        Boolean
-  score            Float?
-  createdAt        DateTime @default(now())
-
-  @@index([mistakeId])
-  @@index([userId])
 }
