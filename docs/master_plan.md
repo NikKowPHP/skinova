@@ -60,7 +60,7 @@ This document outlines the high-level, phased plan for building the **Skinova** 
 
 ---
 
-### `[ ]` Phase H: Backend Automation & Advanced Services
+### `[x]` Phase H: Backend Automation & Advanced Services
 
 **Goal:** Build the automated and asynchronous systems that power the app's unique value. This includes implementing the **end-to-end AI Image Analysis Pipeline** (securely fetching from storage, calling the multi-modal AI, parsing results) and the **Weekly Scan Reminder** email engine using cron jobs and the Resend API.
 

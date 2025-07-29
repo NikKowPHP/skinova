@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
-import { encrypt } from "@/lib/encryption";
+import { encrypt, decrypt } from "@/lib/encryption";
+import { getQuestionGenerationService } from "@/lib/ai";
+import { updateRoutineFromAnalysis } from "@/lib/services/routine.service";
 
 const analyzeSchema = z.object({ scanId: z.string() });
 
@@ -21,27 +24,58 @@ export async function POST(req: NextRequest) {
 
     const scan = await prisma.skinScan.findFirst({
       where: { id: scanId, userId: user.id },
+      include: { user: { select: { skinType: true, primaryConcern: true } } },
     });
-    if (!scan) return NextResponse.json({ error: "Scan not found" }, { status: 404 });
+    if (!scan || !scan.user.skinType || !scan.user.primaryConcern) {
+      return NextResponse.json({ error: "Scan or complete user profile not found" }, { status: 404 });
+    }
 
-    // **MOCK AI PIPELINE** - This logic will be replaced in Phase H
-    const mockAnalysis = {
-      overallScore: Math.floor(Math.random() * 15) + 80, // Score between 80-95
-      analysisJson: encrypt(JSON.stringify({ mock: true, detectedConcerns: 2 })),
-      rawAiResponse: encrypt(JSON.stringify({ message: "This is a mock AI response for Phase E." })),
-    };
+    const imagePath = decrypt(scan.imageUrl);
+    if (!imagePath) throw new Error("Failed to decrypt image path.");
 
-    const newAnalysis = await prisma.skinAnalysis.create({
-      data: {
-        scanId: scanId,
-        ...mockAnalysis
-      },
+    const { data: fileData, error: downloadError } = await supabaseAdmin.storage
+      .from(process.env.NEXT_PUBLIC_SKIN_SCANS_BUCKET!)
+      .download(imagePath);
+    if (downloadError) throw new Error(`Failed to download image from storage: ${downloadError.message}`);
+    
+    const imageBuffer = Buffer.from(await fileData.arrayBuffer());
+
+    const aiService = getQuestionGenerationService();
+    const analysisResult = await aiService.analyzeSkinScan(imageBuffer, {
+        skinType: scan.user.skinType,
+        primaryConcern: scan.user.primaryConcern,
+        notes: scan.notes ? decrypt(scan.notes) : null
     });
-    // End of mock section
 
+    // Use a transaction to save analysis and update routine atomically
+    const newAnalysis = await prisma.$transaction(async (tx) => {
+        const createdAnalysis = await tx.skinAnalysis.create({
+            data: {
+                scanId: scanId,
+                overallScore: analysisResult.overallScore,
+                analysisJson: encrypt(JSON.stringify(analysisResult)),
+                rawAiResponse: encrypt(JSON.stringify(analysisResult)),
+                concerns: {
+                    create: analysisResult.concerns.map((concern: any) => ({
+                        name: concern.name,
+                        severity: concern.severity,
+                        description: concern.description,
+                        boundingBoxJson: concern.boundingBox ? JSON.stringify(concern.boundingBox) : null,
+                    }))
+                }
+            }
+        });
+
+        if (analysisResult.routineRecommendations) {
+            await updateRoutineFromAnalysis(tx, user.id, analysisResult.routineRecommendations);
+        }
+        
+        return createdAnalysis;
+    });
+    
     return NextResponse.json(newAnalysis);
   } catch (error) {
-    logger.error("Error in /api/scan/analyze", error);
+    logger.error("Error in /api/scan/analyze", { message: (error as Error).message });
     return NextResponse.json({ error: "Failed to analyze scan" }, { status: 500 });
   }
 }

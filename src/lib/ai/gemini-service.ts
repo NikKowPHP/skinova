@@ -37,6 +37,8 @@ import { executeGeminiWithRotation } from "./gemini-executor";
 import { logger } from "../logger";
 import { getContextualTranslationPrompt } from "./prompts/contextualTranslation.prompt";
 import { executeGroqWithRotation } from "./groq-executor";
+import { getSkinAnalysisPrompt } from "./prompts/skinAnalysis.prompt";
+import { SkinType } from "@prisma/client";
 
 const GEMINI_MODELS = { gemini_2_5_flash : 'gemini-2.5-flash'}
 const GROQ_DRILL_DOWN_MODEL = "gemma2-9b-it";
@@ -50,6 +52,40 @@ export class GeminiQuestionGenerationService
   };
 
   constructor() {}
+
+  async analyzeSkinScan(
+    imageBuffer: Buffer,
+    userProfile: { skinType: SkinType; primaryConcern: string; notes?: string | null }
+  ): Promise<any> {
+    const prompt = getSkinAnalysisPrompt(userProfile.skinType, userProfile.primaryConcern, userProfile.notes);
+    
+    const imagePart = {
+      inlineData: {
+        data: imageBuffer.toString("base64"),
+        mimeType: "image/jpeg", // Assuming JPEG for now
+      },
+    };
+
+    try {
+      const result = await executeGeminiWithRotation((client) =>
+        client.models.generateContent({
+          model: "gemini-1.5-flash", // Use a multi-modal capable model
+          config: this.jsonConfig,
+          contents: [{ role: "user", parts: [{ text: prompt }, imagePart] }],
+        }),
+      );
+      
+      const text = result.text;
+      if (!text) {
+        throw new Error("Empty response from Gemini API for skin scan analysis");
+      }
+      const cleanedText = this.cleanJsonString(text);
+      return JSON.parse(cleanedText);
+    } catch (error) {
+      logger.error("Error analyzing skin scan with Gemini:", error);
+      throw error;
+    }
+  }
 
   async analyzeJournalEntry(
     journalContent: string,
