@@ -15,12 +15,6 @@ export const useCompleteOnboarding = (options?: {
   return useMutation({
     mutationFn: apiClient.user.completeOnboarding,
     onSuccess: async () => {
-      // Show toast immediately for good UX
-      toast({
-        title: "Onboarding Complete!",
-        description: "Welcome! You're all set to start your journey.",
-      });
-
       // Force a refetch of the user profile and wait for it to complete.
       // This ensures the local cache is updated *before* any navigation or state reset.
       await queryClient.refetchQueries({

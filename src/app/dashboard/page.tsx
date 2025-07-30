@@ -23,6 +23,7 @@ export default function DashboardPage() {
   const authUser = useAuthStore((state) => state.user);
 
   useEffect(() => {
+    // Handle post-subscription redirect
     if (searchParams.get('success') === 'true') {
       toast({
         title: "Welcome to Pro!",
@@ -30,6 +31,18 @@ export default function DashboardPage() {
       });
       queryClient.invalidateQueries({ queryKey: ["userProfile", authUser?.id] });
       router.replace('/dashboard');
+    }
+    
+    // Handle post-onboarding redirect
+    if (searchParams.get('onboarding_complete') === 'true') {
+        toast({
+            title: "Welcome to Skinova!",
+            description: "You're all set up. Let's get started on your skin journey.",
+        });
+        // Invalidate all queries to fetch the freshest data for the dashboard
+        queryClient.invalidateQueries({ queryKey: ["progressAnalytics", authUser?.id] });
+        queryClient.invalidateQueries({ queryKey: ["scans", authUser?.id] });
+        router.replace('/dashboard');
     }
   }, [searchParams, router, toast, queryClient, authUser]);
 
@@ -53,7 +66,7 @@ export default function DashboardPage() {
   const hasScans = analytics && analytics.totalScans > 0;
 
   const mappedScans =
-    scans?.slice(0, 2).map((scan: any) => ({
+    scans?.slice(0, 5).map((scan: any) => ({
       id: scan.id,
       date: new Date(scan.createdAt).toLocaleDateString(),
       overallScore: scan.analysis?.overallScore ?? 'N/A',
@@ -92,7 +105,17 @@ export default function DashboardPage() {
             overallScore={analytics.averageScore} 
             topConcern={analytics.topConcern} 
           />
-          <ScanHistoryList scans={mappedScans} />
+          <section className="space-y-4">
+            <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Recent Scans</h2>
+                {scans && scans.length > 5 && (
+                    <Button variant="link" asChild>
+                        <Link href="/progress">View All</Link>
+                    </Button>
+                )}
+            </div>
+            <ScanHistoryList scans={mappedScans} />
+          </section>
         </>
       )}
     </div>

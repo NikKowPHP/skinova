@@ -1,26 +1,7 @@
-- [x] Fix Next.js warnings about direct `params` access and correct broken admin user detail page.
-- [x] Create `.env.test` file for end-to-end testing environment.
-- [x] Fix failing unit tests related to AI service and onboarding store.
-- [x] Fix `fs` mock in AI service test that broke Prisma client import.
-- [x] Fix scope issue in `gemini-service` causing test failures on file cleanup.
-- [x] Implement mobile camera capture for the scan page.
-- [x] Refactor ScanUploadForm to move file upload logic to the server, adhering to SRP.
-- [x] Fix TypeScript error in data export API.
-- [x] Fix `ConcernSeverity` type mismatch between Prisma enum and component props.
-- [x] Create a comprehensive and accurate privacy policy.
-- [x] Implement disclaimer and privacy policy acceptance dialogs for new users.
-- [x] Fix TypeScript error in `ProfileForm` component due to incorrect type inference.
-- [x] Fix build error and resolve all linting issues.
-- [x] Refactor and remove obsolete language-learning code (`useLanguageStore`).
-- [x] Add a one-time banner to install the app as a PWA.
-- [x] Stabilize onboarding flow to prevent flickering and ensure smooth transitions.
-- [x] Fix "Analysis in Progress" stuck loop by adding status tracking.
-- [x] Make the final onboarding step a manual action after viewing the first analysis.
-- [x] Fix onboarding completion flow by removing state loop in StoreInitializer.
-- [x] Fix routine creation by re-enabling the product catalog database seed script.
-- [x] Fix broken active tab styling on the desktop sidebar.
-- [x] Make product data and management production-ready.
-- [x] Implement intelligent product matching for routines.
-- [x] Enhance AI prompt to provide tags for intelligent product matching.
-- [x] Add a dedicated script for production database seeding.
-- [x] Fix broken active tab styling on the desktop sidebar (regression).
+- [x] Fix crash in AI analysis due to missing `requiredTags` field.
+- [x] Update UI to add "View Routine" button on scan analysis page and enhance product info on routine page.
+- [x] Fix inconsistent scan history display between dashboard and progress pages.
+- [x] Update development seed script to use the production product catalog.
+- [x] Adjust onboarding flow to conclude on the routine page instead of the analysis page.
+- [x] Remove intrusive dialogs from the onboarding flow in favor of on-page CTAs.
+- [x] Ensure dashboard data is refetched after onboarding completion.

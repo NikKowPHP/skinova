@@ -8,19 +8,8 @@ import { AuthLinks } from "@/components/AuthLinks";
 import { DesktopSidebar } from "./DesktopSidebar";
 import { BottomTabBar } from "./BottomTabBar";
 import { SkinProfileWizard } from "../onboarding/SkinProfileWizard";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
-import { Button } from "../ui/button";
 import { useAuthStore } from "@/lib/stores/auth.store";
 import { useOnboardingStore } from "@/lib/stores/onboarding.store";
-import { useCompleteOnboarding } from "@/lib/hooks/data";
-import Spinner from "../ui/Spinner";
 import { SkinovaLogo } from "../SkinovaLogo";
 import { AcceptanceFlow } from "../onboarding/AcceptanceFlow";
 
@@ -89,19 +78,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const {
     step,
     isActive,
-    onboardingScanId,
     setStep,
   } = useOnboardingStore();
   const pathname = usePathname();
   const router = useRouter();
-
-  const completeOnboardingMutation = useCompleteOnboarding({
-    onSuccess: () => {
-      // The hook now handles resetting state and invalidating queries.
-      // We just need to navigate.
-      router.push("/dashboard");
-    },
-  });
 
   const authRoutes = [
     "/login",
@@ -150,83 +130,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onError={(err) => console.error("Onboarding wizard error:", err)}
           />
         );
-
-      case "FIRST_SCAN":
-        if (pathname === "/scan") {
-          return null;
-        }
-        return (
-          <Dialog open={true}>
-            <DialogContent showCloseButton={false}>
-              <DialogHeader>
-                <DialogTitle>Your First Scan</DialogTitle>
-                <DialogDescription>
-                  It's time to take your first skin scan. This will help
-                  us get a baseline of your current skin health.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button onClick={() => router.push("/scan")}>
-                  Go to Scan Page
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        );
-
-      case "VIEW_ANALYSIS":
-        // This logic handles showing a prompt to the user if they navigate away
-        // from the scan page before finishing the tour.
-        if (pathname.startsWith("/scan/")) return null;
-        return (
-          <Dialog open={true}>
-            <DialogContent showCloseButton={false}>
-              <DialogHeader>
-                <DialogTitle>Let's Review Your Analysis</DialogTitle>
-                <DialogDescription>
-                  Your first scan has been analyzed. Let's check out
-                  the results together.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  onClick={() => {
-                    router.push(`/scan/${onboardingScanId}`);
-                  }}
-                  disabled={!onboardingScanId}
-                >
-                  View My Analysis
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        );
-
-      case "COMPLETED":
-        return (
-          <Dialog open={true}>
-            <DialogContent showCloseButton={false}>
-              <DialogHeader>
-                <DialogTitle>🎉 Setup Complete!</DialogTitle>
-                <DialogDescription>
-                  You're all set. You're ready to start your journey to healthier skin.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter className="gap-2 sm:flex-row">
-                <Button
-                  onClick={() => completeOnboardingMutation.mutate()}
-                  disabled={completeOnboardingMutation.isPending}
-                >
-                  {completeOnboardingMutation.isPending && (
-                    <Spinner size="sm" className="mr-2" />
-                  )}
-                  Explore Dashboard
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        );
-
+      
+      // All other steps are handled by on-page components, not intrusive dialogs.
       default:
         return null;
     }

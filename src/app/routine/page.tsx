@@ -1,13 +1,26 @@
 'use client';
 import { RoutineStepCard } from "@/components/routine/RoutineStepCard";
-import { useRoutine } from "@/lib/hooks/data/useRoutine";
+import { useRoutine, useCompleteOnboarding } from "@/lib/hooks/data";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useOnboardingStore } from "@/lib/stores/onboarding.store";
+import { useRouter } from "next/navigation";
+import Spinner from "@/components/ui/Spinner";
         
 export default function RoutinePage() {
   const { data: routine, isLoading } = useRoutine();
+  const { step } = useOnboardingStore();
+  const router = useRouter();
+
+  const completeOnboardingMutation = useCompleteOnboarding({
+    onSuccess: () => {
+      router.push("/dashboard?onboarding_complete=true");
+    },
+  });
+
+  const isOnboardingRoutine = step === 'VIEW_ROUTINE';
 
   if (isLoading) {
     return (
@@ -57,7 +70,9 @@ export default function RoutinePage() {
             key={step.id} 
             step={step.stepNumber} 
             productType={step.product.type} 
-            productName={step.product.name} 
+            productName={step.product.name}
+            productBrand={step.product.brand}
+            productDescription={step.product.description}
             instructions={step.instructions}
             imageUrl={step.product.imageUrl}
             purchaseUrl={step.product.purchaseUrl}
@@ -69,13 +84,42 @@ export default function RoutinePage() {
             key={step.id} 
             step={step.stepNumber} 
             productType={step.product.type} 
-            productName={step.product.name} 
+            productName={step.product.name}
+            productBrand={step.product.brand}
+            productDescription={step.product.description}
             instructions={step.instructions}
             imageUrl={step.product.imageUrl}
             purchaseUrl={step.product.purchaseUrl}
           />)}
         </section>
       </div>
+
+       {isOnboardingRoutine && (
+          <div className="text-center mt-8 pb-20 md:pb-0">
+              <Card className="max-w-md mx-auto p-6 bg-primary/10 border-primary/20">
+                  <CardHeader>
+                      <CardTitle>This is your first personalized routine!</CardTitle>
+                      <CardDescription>You're all set up. Explore your dashboard to track your progress.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <Button 
+                        size="lg" 
+                        onClick={() => completeOnboardingMutation.mutate()}
+                        disabled={completeOnboardingMutation.isPending}
+                      >
+                          {completeOnboardingMutation.isPending ? (
+                              <>
+                                <Spinner size="sm" className="mr-2" />
+                                Finalizing...
+                              </>
+                          ) : (
+                              "Complete & Go to Dashboard"
+                          )}
+                      </Button>
+                  </CardContent>
+              </Card>
+          </div>
+      )}
     </div>
   );
 }

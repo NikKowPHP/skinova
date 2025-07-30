@@ -7,6 +7,7 @@ export type OnboardingStep =
   | "PROFILE_SETUP"
   | "FIRST_SCAN"
   | "VIEW_ANALYSIS"
+  | "VIEW_ROUTINE"
   | "COMPLETED"
   | "INACTIVE";
 
@@ -70,9 +71,11 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
       const latestScan = scans[0];
       if (latestScan) {
         set({ onboardingScanId: latestScan.id });
-        // The final automatic step is viewing the analysis.
-        // The user will manually trigger the 'COMPLETED' step from the UI.
-        nextStep = "VIEW_ANALYSIS";
+        if (latestScan.analysis) {
+          nextStep = "VIEW_ROUTINE";
+        } else {
+          nextStep = "VIEW_ANALYSIS";
+        }
       }
     }
 

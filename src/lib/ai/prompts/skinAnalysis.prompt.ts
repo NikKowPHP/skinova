@@ -26,21 +26,22 @@ export const getSkinAnalysisPrompt = (skinType: SkinType, primaryConcern: string
     ],
     "routineRecommendations": {
         "am": [
-            { "productType": "Cleanser", "reason": "A gentle cleanser is recommended to start the day without stripping natural oils." },
-            { "productType": "Serum", "reason": "A Vitamin C serum can help with the observed dullness and provide antioxidant protection." }
+            { "productType": "Cleanser", "reason": "A gentle cleanser is recommended to start the day without stripping natural oils.", "requiredTags": ["hydrating"] },
+            { "productType": "Serum", "reason": "A Vitamin C serum can help with the observed dullness and provide antioxidant protection.", "requiredTags": ["hyperpigmentation", "brightening"] }
         ],
         "pm": [
-            { "productType": "Cleanser", "reason": "To remove impurities from the day." },
-            { "productType": "Treatment", "reason": "A retinoid is recommended to address the fine lines and improve texture." }
+            { "productType": "Cleanser", "reason": "To remove impurities from the day.", "requiredTags": ["hydrating"] },
+            { "productType": "Treatment", "reason": "A retinoid is recommended to address the fine lines and improve texture.", "requiredTags": ["fine-lines-wrinkles", "acne"] }
         ]
     }
   }
 
   **GUIDELINES:**
   1.  Identify 2-4 key concerns from the image.
-  2.  The "routineRecommendations" should be simple, high-level suggestions based on product *type*, not specific brand names.
-  3.  Bounding box coordinates must be normalized between 0.0 and 1.0. If you cannot identify a specific area for a concern, you may set "boundingBox" to null.
-  4.  Ensure the analysis is consistent with the user's provided skin profile.
+  2.  For "routineRecommendations", recommend product *types* (e.g., 'Serum'), not brand names.
+  3.  **CRITICAL**: Each item in "routineRecommendations" MUST include a "requiredTags" array. These tags should be lowercase and dash-separated (e.g., 'fine-lines-wrinkles') and correspond to the concerns the product should address. This is vital for matching products from our catalog.
+  4.  Bounding box coordinates must be normalized between 0.0 and 1.0. If you cannot identify a specific area for a concern, set "boundingBox" to null.
+  5.  Ensure the analysis is consistent with the user's provided skin profile.
 
   Now, analyze the user's skin image.
   `;

@@ -10,6 +10,7 @@ type Tx = Omit<
 interface RoutineRecommendation {
   productType: string;
   reason: string;
+  requiredTags: string[];
 }
 
 // The new intelligent matching engine
@@ -17,6 +18,7 @@ const findBestProductMatch = (
   products: Product[],
   productType: string,
   userProfile: { skinType?: SkinType | null; primaryConcern?: string | null },
+  requiredTags: string[],
 ): Product | null => {
   const candidates = products.filter((p) => p.type === productType);
   if (candidates.length === 0) return null;
@@ -27,19 +29,29 @@ const findBestProductMatch = (
 
   for (const product of candidates) {
     let score = 0;
-    // Score based on tags matching user profile
-    if (userProfile.skinType && product.tags.includes(`for-${userProfile.skinType.toLowerCase()}`)) {
+    // Defensively ensure product.tags is an array to prevent crashes from old data.
+    const productTags = product.tags || [];
+
+    // CRITICAL: Score based on tags from the AI's direct analysis of the scan.
+    for (const tag of requiredTags) {
+        if (productTags.includes(tag)) {
+            score += 5; // A direct match with the AI's findings is highly weighted.
+        }
+    }
+
+    // GOOD: Score based on general user profile tags.
+    if (userProfile.skinType && productTags.includes(`for-${userProfile.skinType.toLowerCase()}`)) {
       score += 2; // Strong match for skin type
     }
-    if (userProfile.primaryConcern && product.tags.includes(userProfile.primaryConcern.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-'))) {
+    if (userProfile.primaryConcern && productTags.includes(userProfile.primaryConcern.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-'))) {
       score += 1; // Good match for concern
     }
-    // Generic "sensitive" tag match
-    if (userProfile.skinType === 'SENSITIVE' && product.tags.includes('for-sensitive-skin')) {
+    if (userProfile.skinType === 'SENSITIVE' && productTags.includes('for-sensitive-skin')) {
       score += 3; // Very strong match for sensitivity
     }
-    // Prefer products with more relevant tags
-    score += product.tags.length * 0.1;
+    
+    // TIE-BREAKER: Prefer products with more relevant tags in general.
+    score += productTags.length * 0.1;
 
     if (score > highestScore) {
       highestScore = score;
@@ -48,7 +60,7 @@ const findBestProductMatch = (
   }
 
   // If no product scored, it means no specific matches were found.
-  // We return the first candidate as a safe default.
+  // We return the first candidate as a safe, generic default.
   return bestMatch;
 };
 
@@ -79,7 +91,7 @@ export async function updateRoutineFromAnalysis(
   let stepCounter = 1;
 
   for (const rec of recommendations.am) {
-    const product = findBestProductMatch(allProducts, rec.productType, { skinType: user.skinType, primaryConcern: user.primaryConcern });
+    const product = findBestProductMatch(allProducts, rec.productType, { skinType: user.skinType, primaryConcern: user.primaryConcern }, rec.requiredTags || []);
     if (product) {
       newSteps.push({
         routineId: routine.id,
@@ -95,7 +107,7 @@ export async function updateRoutineFromAnalysis(
 
   stepCounter = 1; // Reset for PM
   for (const rec of recommendations.pm) {
-    const product = findBestProductMatch(allProducts, rec.productType, { skinType: user.skinType, primaryConcern: user.primaryConcern });
+    const product = findBestProductMatch(allProducts, rec.productType, { skinType: user.skinType, primaryConcern: user.primaryConcern }, rec.requiredTags || []);
     if (product) {
       newSteps.push({
         routineId: routine.id,

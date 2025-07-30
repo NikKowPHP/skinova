@@ -8,17 +8,18 @@ import { useScan } from "@/lib/hooks/data/useScan";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Spinner from '@/components/ui/Spinner';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ListOrdered } from 'lucide-react';
 import { useOnboardingStore } from '@/lib/stores/onboarding.store';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function ScanResultPage() {
   const params = useParams<{ id: string }>();
   const [activeConcernId, setActiveConcernId] = React.useState<string | null>(null);
   const { data: scan, isLoading, error } = useScan(params.id);
-  const { step, onboardingScanId, setStep } = useOnboardingStore();
+  const { step, onboardingScanId } = useOnboardingStore();
 
-  const isOnboardingAnalysis = step === 'VIEW_ANALYSIS' && params.id === onboardingScanId;
+  const isOnboarding = (step === 'VIEW_ANALYSIS' || step === 'VIEW_ROUTINE') && params.id === onboardingScanId;
 
   if (isLoading) {
     return (
@@ -118,23 +119,24 @@ export default function ScanResultPage() {
               onMouseLeave={() => setActiveConcernId(null)}
             />
           ))}
-          {isOnboardingAnalysis ? (
-            <Card className="bg-primary/10 border-primary/20">
-              <CardHeader>
-                <CardTitle>You're Almost Done!</CardTitle>
+
+          <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <ListOrdered className="h-5 w-5" /> Your Updated Routine
+                </CardTitle>
                 <CardDescription>
-                  This is your first analysis. Once you've reviewed it, complete your setup to unlock the rest of the app.
+                    Your daily plan has been updated based on this analysis.
                 </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button className="w-full" onClick={() => setStep('COMPLETED')}>
-                  Complete Setup
+            </CardHeader>
+            <CardContent>
+                <Button asChild className="w-full">
+                    <Link href="/routine">View My Routine</Link>
                 </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <ConsultationPrompt scanId={params.id} />
-          )}
+            </CardContent>
+          </Card>
+          
+          {!isOnboarding && <ConsultationPrompt scanId={params.id} />}
         </div>
       </div>
     </div>
