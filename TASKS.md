@@ -5,3 +5,5 @@
 - [x] Adjust onboarding flow to conclude on the routine page instead of the analysis page.
 - [x] Remove intrusive dialogs from the onboarding flow in favor of on-page CTAs.
 - [x] Ensure dashboard data is refetched after onboarding completion.
+- [x] Fix privacy policy link not working inside the onboarding dialog.
+- [x] Make privacy policy page free of dialogs for logged-in users.

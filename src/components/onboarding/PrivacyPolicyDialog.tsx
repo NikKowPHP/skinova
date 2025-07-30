@@ -30,9 +30,9 @@ export function PrivacyPolicyDialog({ isOpen, onAccept }: PrivacyPolicyDialogPro
           </p>
           <p>
             For full details, please read our complete{" "}
-            <Link href="/privacy" target="_blank" className="text-primary underline">
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline">
               Privacy Policy
-            </Link>.
+            </a>.
           </p>
         </div>
         <div className="flex items-center space-x-2">
