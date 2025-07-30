@@ -20,3 +20,7 @@
 - [x] Fix routine creation by re-enabling the product catalog database seed script.
 - [x] Fix broken active tab styling on the desktop sidebar.
 - [x] Make product data and management production-ready.
+- [x] Implement intelligent product matching for routines.
+- [x] Enhance AI prompt to provide tags for intelligent product matching.
+- [x] Add a dedicated script for production database seeding.
+- [x] Fix broken active tab styling on the desktop sidebar (regression).

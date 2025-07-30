@@ -22,7 +22,7 @@ export function DesktopSidebar() {
   const { data: userProfile } = useUserProfile();
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border">
+    <aside className="hidden md:flex flex-col w-64 bg-background border-r">
       <div className="flex items-center h-16 border-b px-6">
         <Link href="/">
           <SkinovaLogo />
@@ -41,8 +41,8 @@ export function DesktopSidebar() {
                 className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 )}
               >
                 <item.icon className="h-5 w-5" />
@@ -56,8 +56,8 @@ export function DesktopSidebar() {
                 className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   pathname.startsWith("/admin")
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 )}
               >
                 <Shield className="h-5 w-5" />
@@ -72,8 +72,8 @@ export function DesktopSidebar() {
           className={cn(
             "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
             pathname.startsWith("/settings")
-              ? "bg-sidebar-accent text-sidebar-accent-foreground"
-              : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+              ? "bg-accent text-accent-foreground"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
           )}
         >
           <Settings className="h-5 w-5" />
@@ -85,7 +85,7 @@ export function DesktopSidebar() {
             router.push("/");
           }}
           className={cn(
-            "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-sidebar-foreground hover:bg-sidebar-accent/50",
+            "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-muted-foreground hover:bg-accent hover:text-accent-foreground",
           )}
         >
           <LogOut className="h-5 w-5" />

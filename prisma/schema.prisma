@@ -133,6 +133,7 @@ model Product {
   description String        @db.Text
   imageUrl    String?       @db.Text
   purchaseUrl String?       @db.Text
+  tags        String[]      @default([]) // e.g., ["for-oily-skin", "acne-prone", "hydrating"]
 
   // Relations
   routines    RoutineStep[]

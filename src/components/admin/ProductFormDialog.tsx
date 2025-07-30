@@ -14,7 +14,7 @@ interface ProductFormDialogProps {
     productToEdit?: Product | null;
 }
 
-const emptyForm = { name: '', brand: '', type: '', description: '', imageUrl: '', purchaseUrl: '' };
+const emptyForm = { name: '', brand: '', type: '', description: '', imageUrl: '', purchaseUrl: '', tags: '' };
 
 export const ProductFormDialog = ({ isOpen, onClose, productToEdit }: ProductFormDialogProps) => {
     const [formData, setFormData] = useState(emptyForm);
@@ -30,6 +30,7 @@ export const ProductFormDialog = ({ isOpen, onClose, productToEdit }: ProductFor
                 description: productToEdit.description,
                 imageUrl: productToEdit.imageUrl || '',
                 purchaseUrl: productToEdit.purchaseUrl || '',
+                tags: productToEdit.tags.join(', '),
             });
         } else {
             setFormData(emptyForm);
@@ -49,6 +50,7 @@ export const ProductFormDialog = ({ isOpen, onClose, productToEdit }: ProductFor
             description: formData.description,
             imageUrl: formData.imageUrl || null,
             purchaseUrl: formData.purchaseUrl || null,
+            tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
         };
 
         if (productToEdit) {
@@ -87,6 +89,10 @@ export const ProductFormDialog = ({ isOpen, onClose, productToEdit }: ProductFor
                      <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="purchaseUrl" className="text-right">Purchase URL</Label>
                         <Input id="purchaseUrl" name="purchaseUrl" value={formData.purchaseUrl} onChange={handleChange} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="tags" className="text-right">Tags</Label>
+                        <Input id="tags" name="tags" value={formData.tags} onChange={handleChange} className="col-span-3" placeholder="for-oily, acne, hydrating..." />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="description" className="text-right">Description</Label>
