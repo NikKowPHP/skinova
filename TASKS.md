@@ -15,3 +15,5 @@
 - [x] Add a one-time banner to install the app as a PWA.
 - [x] Stabilize onboarding flow to prevent flickering and ensure smooth transitions.
 - [x] Fix "Analysis in Progress" stuck loop by adding status tracking.
+- [x] Make the final onboarding step a manual action after viewing the first analysis.
+- [x] Fix onboarding completion flow by removing state loop in StoreInitializer.

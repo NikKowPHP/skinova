@@ -57,7 +57,6 @@ function StoreInitializer() {
     isAcceptanceComplete, // React to changes in acceptance status
     determineCurrentStep,
     resetOnboarding,
-    step,
   ]);
 
   return null;

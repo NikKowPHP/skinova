@@ -9,11 +9,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Spinner from '@/components/ui/Spinner';
 import { AlertTriangle } from 'lucide-react';
+import { useOnboardingStore } from '@/lib/stores/onboarding.store';
+import { Button } from '@/components/ui/button';
 
 export default function ScanResultPage() {
   const params = useParams<{ id: string }>();
   const [activeConcernId, setActiveConcernId] = React.useState<string | null>(null);
   const { data: scan, isLoading, error } = useScan(params.id);
+  const { step, onboardingScanId, setStep } = useOnboardingStore();
+
+  const isOnboardingAnalysis = step === 'VIEW_ANALYSIS' && params.id === onboardingScanId;
 
   if (isLoading) {
     return (
@@ -113,7 +118,23 @@ export default function ScanResultPage() {
               onMouseLeave={() => setActiveConcernId(null)}
             />
           ))}
-          <ConsultationPrompt scanId={params.id} />
+          {isOnboardingAnalysis ? (
+            <Card className="bg-primary/10 border-primary/20">
+              <CardHeader>
+                <CardTitle>You're Almost Done!</CardTitle>
+                <CardDescription>
+                  This is your first analysis. Once you've reviewed it, complete your setup to unlock the rest of the app.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full" onClick={() => setStep('COMPLETED')}>
+                  Complete Setup
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <ConsultationPrompt scanId={params.id} />
+          )}
         </div>
       </div>
     </div>

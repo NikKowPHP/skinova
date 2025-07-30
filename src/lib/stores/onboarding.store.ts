@@ -69,13 +69,10 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
     } else {
       const latestScan = scans[0];
       if (latestScan) {
-        // Store the latest scan ID for the tour
         set({ onboardingScanId: latestScan.id });
-        if (!latestScan.analysis) {
-          nextStep = "VIEW_ANALYSIS"; // Waiting for analysis
-        } else {
-          nextStep = "COMPLETED"; // User has done everything needed for the tour
-        }
+        // The final automatic step is viewing the analysis.
+        // The user will manually trigger the 'COMPLETED' step from the UI.
+        nextStep = "VIEW_ANALYSIS";
       }
     }
 
