@@ -131,6 +131,8 @@ model Product {
   brand       String?
   type        String        // e.g., "Cleanser", "Serum", "Moisturizer"
   description String        @db.Text
+  imageUrl    String?       @db.Text
+  purchaseUrl String?       @db.Text
 
   // Relations
   routines    RoutineStep[]

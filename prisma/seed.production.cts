@@ -16,34 +16,96 @@ async function main() {
   });
   console.log("Production system settings seeded.");
 
-  // --- Product Catalog ---
+  // --- Curated Production-Ready Product Catalog ---
   console.log("Seeding product catalog...");
   const products = [
     // Cleansers
-    { name: 'Gentle Hydrating Cleanser', type: 'Cleanser', brand: 'BrandA', description: 'A mild, non-stripping cleanser for all skin types.' },
-    { name: 'Salicylic Acid Cleanser', type: 'Cleanser', brand: 'BrandB', description: 'An exfoliating cleanser for oily and acne-prone skin.' },
+    { 
+      name: 'CeraVe Hydrating Facial Cleanser', 
+      type: 'Cleanser', 
+      brand: 'CeraVe', 
+      description: 'A gentle, non-foaming cleanser with ceramides and hyaluronic acid to hydrate and restore the skin barrier.',
+      imageUrl: 'https://i5.walmartimages.com/seo/CeraVe-Hydrating-Facial-Cleanser-with-Hyaluronic-Acid-and-Ceramides-for-Normal-to-Dry-Skin-Fragrance-Free-Face-Wash-24-fl-oz_3859bf53-9031-4822-bdd4-2f22c68f270a.194433e5b38d73b0a701e400a403d1c1.jpeg',
+      purchaseUrl: 'https://www.amazon.com/dp/B01MSSDEPK'
+    },
+    { 
+      name: 'La Roche-Posay Effaclar Medicated Gel Cleanser', 
+      type: 'Cleanser', 
+      brand: 'La Roche-Posay', 
+      description: 'An acne face wash with 2% salicylic acid that targets excess oil and helps clear acne breakouts.',
+      imageUrl: 'https://www.laroche-posay.us/dw/image/v2/AANG_PRD/on/demandware.static/-/Sites-lrp-master-catalog/default/dw83a5f257/product-images/Effaclar/Effaclar-Medicated-Gel-Cleanser/3337872413038_EfaclarGelCleanser_Front_3000x3000.jpg',
+      purchaseUrl: 'https://www.amazon.com/dp/B00LO1DNXU'
+    },
     
     // Serums
-    { name: 'Vitamin C Serum', type: 'Serum', brand: 'BrandA', description: 'A brightening antioxidant serum for daytime use.' },
-    { name: 'Hyaluronic Acid Serum', type: 'Serum', brand: 'BrandC', description: 'Provides intense hydration for dry and dehydrated skin.' },
+    { 
+      name: 'The Ordinary Niacinamide 10% + Zinc 1%', 
+      type: 'Serum', 
+      brand: 'The Ordinary', 
+      description: 'A high-strength vitamin and mineral blemish formula that reduces the appearance of skin blemishes and congestion.',
+      imageUrl: 'https://images.ulta.com/is/image/Ulta/2551167',
+      purchaseUrl: 'https://www.amazon.com/dp/B07DN7343P'
+    },
+    { 
+      name: 'Vichy Mineral 89 Hyaluronic Acid Face Serum', 
+      type: 'Serum', 
+      brand: 'Vichy', 
+      description: 'A daily plumping and hydrating booster made with natural origin hyaluronic acid and Vichy Volcanic Water.',
+      imageUrl: 'https://www.vichyusa.com/dw/image/v2/AANG_PRD/on/demandware.static/-/Sites-vichy-master-catalog/default/dw1505c24a/product-packshots/mineral-89/Mineral-89-Serum-3337875543248-75ml-front-Vichy-USA.jpg',
+      purchaseUrl: 'https://www.amazon.com/dp/B074Z4665V'
+    },
     
     // Treatments
-    { name: 'Retinoid Cream 0.025%', type: 'Treatment', brand: 'BrandB', description: 'A prescription-strength retinoid for anti-aging and acne.' },
-    { name: 'Benzoyl Peroxide Gel 5%', type: 'Treatment', brand: 'BrandD', description: 'An effective spot treatment for inflammatory acne.' },
+    { 
+      name: 'Differin Adapalene Gel 0.1% Acne Treatment', 
+      type: 'Treatment', 
+      brand: 'Differin', 
+      description: 'A prescription-strength retinoid for clearing breakouts, preventing new acne, and restoring skin tone and texture.',
+      imageUrl: 'https://i5.walmartimages.com/seo/Differin-Gel-Acne-Treatment-with-0-1-Adapalene-45g-90-Day-Supply_f608933c-4e89-42b7-a3f8-dc49285038f4.b3294314c442657d4c82c6328e1d5e21.jpeg',
+      purchaseUrl: 'https://www.amazon.com/dp/B07L1PHSY9'
+    },
     
     // Moisturizers
-    { name: 'Daily Hydration Lotion', type: 'Moisturizer', brand: 'BrandA', description: 'A lightweight daily moisturizer with ceramides.' },
-    { name: 'Night Repair Cream', type: 'Moisturizer', brand: 'BrandC', description: 'A rich, nourishing cream for overnight skin repair.' },
+    { 
+      name: 'CeraVe PM Facial Moisturizing Lotion', 
+      type: 'Moisturizer', 
+      brand: 'CeraVe', 
+      description: 'An oil-free night cream with niacinamide, hyaluronic acid, and ceramides that helps calm the skin and restore the barrier.',
+      imageUrl: 'https://i5.walmartimages.com/seo/CeraVe-PM-Facial-Moisturizing-Lotion-for-Nighttime-Use-with-Hyaluronic-Acid-and-Niacinamide-3-fl-oz_9d5b4a9a-00db-432e-9d29-a78d2b86d2f3.b89115f07a7833a789a69cb229239d5e.jpeg',
+      purchaseUrl: 'https://www.amazon.com/dp/B00365DABC'
+    },
+    { 
+      name: 'Vanicream Moisturizing Cream', 
+      type: 'Moisturizer', 
+      brand: 'Vanicream', 
+      description: 'A non-greasy, long-lasting moisturizing cream that is easy to spread, quickly absorbed, and non-comedogenic. Ideal for sensitive skin.',
+      imageUrl: 'https://www.vanicream.com/wp-content/uploads/2023/12/VC-Moisturizing-Cream-16oz-F.jpg',
+      purchaseUrl: 'https://www.amazon.com/dp/B000NWGCZ2'
+    },
     
     // Sunscreens
-    { name: 'SPF 50+ Mineral Sunscreen', type: 'Sunscreen', brand: 'BrandD', description: 'A broad-spectrum physical sunscreen for sensitive skin.' },
-    { name: 'SPF 30 Chemical Sunscreen', type: 'Sunscreen', brand: 'BrandB', description: 'A lightweight, non-greasy chemical sunscreen.' },
+    { 
+      name: 'EltaMD UV Clear Broad-Spectrum SPF 46', 
+      type: 'Sunscreen', 
+      brand: 'EltaMD', 
+      description: 'An oil-free sunscreen that helps calm and protect sensitive skin types prone to discoloration and breakouts.',
+      imageUrl: 'https://eltamd.com/cdn/shop/files/UV-Clear-Untinted-PDP-FRONTRIGHT-1.7oz.png',
+      purchaseUrl: 'https://www.amazon.com/dp/B002MSN3QQ'
+    },
+    { 
+      name: 'La Roche-Posay Anthelios Melt-In Milk Sunscreen SPF 60', 
+      type: 'Sunscreen', 
+      brand: 'La Roche-Posay', 
+      description: 'A fast-absorbing, velvety texture sunscreen for face and body with broad-spectrum protection.',
+      imageUrl: 'https://www.laroche-posay.us/dw/image/v2/AANG_PRD/on/demandware.static/-/Sites-lrp-master-catalog/default/dw1537b8d7/product-images/Anthelios/Anthelios-Melt-in-Milk-Sunscreen-SPF-60/La-Roche-Posay-Face-and-Body-Sunscreen-Anthelios-Melt-in-Milk-SPF-60-3606000468334-Front.jpg',
+      purchaseUrl: 'https://www.amazon.com/dp/B002CML1XE'
+    },
   ];
 
   for (const product of products) {
     await prisma.product.upsert({
       where: { name: product.name },
-      update: {},
+      update: product,
       create: product,
     });
   }

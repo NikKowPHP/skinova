@@ -17,3 +17,6 @@
 - [x] Fix "Analysis in Progress" stuck loop by adding status tracking.
 - [x] Make the final onboarding step a manual action after viewing the first analysis.
 - [x] Fix onboarding completion flow by removing state loop in StoreInitializer.
+- [x] Fix routine creation by re-enabling the product catalog database seed script.
+- [x] Fix broken active tab styling on the desktop sidebar.
+- [x] Make product data and management production-ready.

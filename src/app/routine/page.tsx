@@ -53,11 +53,27 @@ export default function RoutinePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">AM Routine ☀️</h2>
-          {amRoutine.map(step => <RoutineStepCard key={step.id} step={step.stepNumber} productType={step.product.type} productName={step.product.name} instructions={step.instructions} />)}
+          {amRoutine.map(step => <RoutineStepCard 
+            key={step.id} 
+            step={step.stepNumber} 
+            productType={step.product.type} 
+            productName={step.product.name} 
+            instructions={step.instructions}
+            imageUrl={step.product.imageUrl}
+            purchaseUrl={step.product.purchaseUrl}
+          />)}
         </section>
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">PM Routine 🌙</h2>
-          {pmRoutine.map(step => <RoutineStepCard key={step.id} step={step.stepNumber} productType={step.product.type} productName={step.product.name} instructions={step.instructions} />)}
+          {pmRoutine.map(step => <RoutineStepCard 
+            key={step.id} 
+            step={step.stepNumber} 
+            productType={step.product.type} 
+            productName={step.product.name} 
+            instructions={step.instructions}
+            imageUrl={step.product.imageUrl}
+            purchaseUrl={step.product.purchaseUrl}
+          />)}
         </section>
       </div>
     </div>

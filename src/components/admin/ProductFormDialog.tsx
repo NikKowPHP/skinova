@@ -14,8 +14,10 @@ interface ProductFormDialogProps {
     productToEdit?: Product | null;
 }
 
+const emptyForm = { name: '', brand: '', type: '', description: '', imageUrl: '', purchaseUrl: '' };
+
 export const ProductFormDialog = ({ isOpen, onClose, productToEdit }: ProductFormDialogProps) => {
-    const [formData, setFormData] = useState({ name: '', brand: '', type: '', description: '' });
+    const [formData, setFormData] = useState(emptyForm);
     const createMutation = useCreateProduct();
     const updateMutation = useUpdateProduct();
 
@@ -26,9 +28,11 @@ export const ProductFormDialog = ({ isOpen, onClose, productToEdit }: ProductFor
                 brand: productToEdit.brand || '',
                 type: productToEdit.type,
                 description: productToEdit.description,
+                imageUrl: productToEdit.imageUrl || '',
+                purchaseUrl: productToEdit.purchaseUrl || '',
             });
         } else {
-            setFormData({ name: '', brand: '', type: '', description: '' });
+            setFormData(emptyForm);
         }
     }, [productToEdit, isOpen]);
 
@@ -37,10 +41,20 @@ export const ProductFormDialog = ({ isOpen, onClose, productToEdit }: ProductFor
     };
 
     const handleSubmit = () => {
+        // Construct payload, ensuring optional fields are handled
+        const payload = {
+            name: formData.name,
+            brand: formData.brand || null,
+            type: formData.type,
+            description: formData.description,
+            imageUrl: formData.imageUrl || null,
+            purchaseUrl: formData.purchaseUrl || null,
+        };
+
         if (productToEdit) {
-            updateMutation.mutate({ id: productToEdit.id, payload: formData }, { onSuccess: onClose });
+            updateMutation.mutate({ id: productToEdit.id, payload }, { onSuccess: onClose });
         } else {
-            createMutation.mutate(formData, { onSuccess: onClose });
+            createMutation.mutate(payload, { onSuccess: onClose });
         }
     };
     
@@ -65,6 +79,14 @@ export const ProductFormDialog = ({ isOpen, onClose, productToEdit }: ProductFor
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="type" className="text-right">Type</Label>
                         <Input id="type" name="type" value={formData.type} onChange={handleChange} className="col-span-3" />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="imageUrl" className="text-right">Image URL</Label>
+                        <Input id="imageUrl" name="imageUrl" value={formData.imageUrl} onChange={handleChange} className="col-span-3" />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="purchaseUrl" className="text-right">Purchase URL</Label>
+                        <Input id="purchaseUrl" name="purchaseUrl" value={formData.purchaseUrl} onChange={handleChange} className="col-span-3" />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="description" className="text-right">Description</Label>
