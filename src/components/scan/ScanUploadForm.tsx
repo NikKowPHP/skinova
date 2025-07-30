@@ -8,13 +8,11 @@ import { useRouter } from "next/navigation";
 import { useCreateScan, useAnalyzeScan } from "@/lib/hooks/data";
 import { useAuthStore } from '@/lib/stores/auth.store';
 import { useToast } from '../ui/use-toast';
-import { createClient } from '@/lib/supabase/client';
 
 export const ScanUploadForm = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -48,41 +46,25 @@ export const ScanUploadForm = () => {
       return;
     }
 
-    setIsUploading(true);
-
-    try {
-      const supabase = createClient();
-      const fileExt = imageFile.name.split('.').pop();
-      const filePath = `public/${authUser.id}/${crypto.randomUUID()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from(process.env.NEXT_PUBLIC_SKIN_SCANS_BUCKET!)
-        .upload(filePath, imageFile);
-
-      if (uploadError) {
-        throw uploadError;
-      }
-      
-      setIsUploading(false);
-
-      createScanMutation.mutate({ imageUrl: filePath, notes }, {
-        onSuccess: (newScan) => {
-          analyzeScanMutation.mutate(newScan.id, {
-            onSuccess: () => {
-              router.push(`/scan/${newScan.id}`);
-            }
-          });
-        }
-      });
-
-    } catch (error) {
-      setIsUploading(false);
-      toast({ variant: "destructive", title: "Upload Failed", description: (error as Error).message });
+    const formData = new FormData();
+    formData.append('file', imageFile);
+    if (notes) {
+      formData.append('notes', notes);
     }
+    
+    createScanMutation.mutate(formData, {
+      onSuccess: (newScan) => {
+        analyzeScanMutation.mutate(newScan.id, {
+          onSuccess: () => {
+            router.push(`/scan/${newScan.id}`);
+          }
+        });
+      }
+    });
   };
   
-  const isProcessing = isUploading || createScanMutation.isPending || analyzeScanMutation.isPending;
-  const buttonText = isUploading ? "Uploading..." : (createScanMutation.isPending ? "Saving scan..." : "Analyzing...");
+  const isProcessing = createScanMutation.isPending || analyzeScanMutation.isPending;
+  const buttonText = createScanMutation.isPending ? "Uploading..." : (analyzeScanMutation.isPending ? "Analyzing..." : "Analyze My Skin");
 
   return (
     <Card>

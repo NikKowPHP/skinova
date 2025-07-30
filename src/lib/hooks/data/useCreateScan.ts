@@ -9,7 +9,7 @@ export const useCreateScan = () => {
   const authUser = useAuthStore((state) => state.user);
 
   return useMutation({
-    mutationFn: (payload: { imageUrl: string; notes?: string }) => apiClient.scan.create(payload),
+    mutationFn: (payload: FormData) => apiClient.scan.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["scans", authUser?.id] });
       // Toast is handled by the analysis hook

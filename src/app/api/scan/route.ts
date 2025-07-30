@@ -5,6 +5,7 @@ import { z } from "zod";
 import { logger } from "@/lib/logger";
 import { encrypt, decrypt } from "@/lib/encryption";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import crypto from 'crypto';
 
 // GET Handler for scan history
 export async function GET(req: NextRequest) {
@@ -55,29 +56,41 @@ export async function GET(req: NextRequest) {
 }
 
 // POST Handler for creating a new scan
-const createScanSchema = z.object({
-    imageUrl: z.string(), // Now expects a path, not a URL
-    notes: z.string().optional(),
-});
-
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const body = await req.json();
-    logger.info(`/api/scan - POST - User: ${user.id}`, { imageUrl: 'REDACTED' });
+    const formData = await req.formData();
+    const file = formData.get('file') as File | null;
+    const notes = formData.get('notes') as string | null;
 
-    const parsed = createScanSchema.safeParse(body);
-    if (!parsed.success) return NextResponse.json({ error: parsed.error }, { status: 400 });
+    if (!file) {
+      return NextResponse.json({ error: "File is required" }, { status: 400 });
+    }
 
-    const { imageUrl, notes } = parsed.data;
+    const fileBuffer = Buffer.from(await file.arrayBuffer());
+    const fileExt = file.name.split('.').pop();
+    const filePath = `public/${user.id}/${crypto.randomUUID()}.${fileExt}`;
+
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from(process.env.NEXT_PUBLIC_SKIN_SCANS_BUCKET!)
+      .upload(filePath, fileBuffer, {
+        contentType: file.type,
+      });
+
+    if (uploadError) {
+      logger.error('Supabase upload failed in /api/scan', uploadError);
+      throw new Error('Failed to upload image to storage.');
+    }
+    
+    logger.info(`/api/scan - POST - User: ${user.id}`, { filePath });
 
     const newScan = await prisma.skinScan.create({
       data: {
         userId: user.id,
-        imageUrl: encrypt(imageUrl),
+        imageUrl: encrypt(filePath),
         notes: notes ? encrypt(notes) : undefined,
       },
     });
@@ -85,6 +98,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(newScan, { status: 201 });
   } catch (error) {
     logger.error("/api/scan - POST failed", error);
-    return NextResponse.json({ error: "Failed to create scan" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "Failed to create scan";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

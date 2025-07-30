@@ -4,3 +4,4 @@
 - [x] Fix `fs` mock in AI service test that broke Prisma client import.
 - [x] Fix scope issue in `gemini-service` causing test failures on file cleanup.
 - [x] Implement mobile camera capture for the scan page.
+- [x] Refactor ScanUploadForm to move file upload logic to the server, adhering to SRP.

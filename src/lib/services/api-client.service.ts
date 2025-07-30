@@ -22,7 +22,7 @@ export const apiClient = {
       const { data } = await axios.get<ScanWithAnalysis>(`/api/scan/${id}`);
       return data;
     },
-    create: async (payload: { imageUrl: string; notes?: string }) => {
+    create: async (payload: FormData) => {
       const { data } = await axios.post<ScanWithAnalysis>("/api/scan", payload);
       return data;
     },
