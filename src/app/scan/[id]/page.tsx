@@ -6,8 +6,9 @@ import { ConcernCard } from "@/components/analysis/ConcernCard";
 import { ConsultationPrompt } from "@/components/analysis/ConsultationPrompt";
 import { useScan } from "@/lib/hooks/data/useScan";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Spinner from '@/components/ui/Spinner';
+import { AlertTriangle } from 'lucide-react';
 
 export default function ScanResultPage() {
   const params = useParams<{ id: string }>();
@@ -35,7 +36,7 @@ export default function ScanResultPage() {
   if (error) return <p>Error loading scan: {error.message}</p>;
   if (!scan) return <p>Scan not found.</p>;
 
-  if (!scan.analysis) {
+  if (scan.analysisStatus === 'PENDING' && !scan.analysis) {
     return (
         <div className="container mx-auto p-4">
             <Card className="text-center p-8 max-w-md mx-auto">
@@ -52,6 +53,37 @@ export default function ScanResultPage() {
         </div>
     )
   }
+
+  if (scan.analysisStatus === 'FAILED') {
+    return (
+        <div className="container mx-auto p-4">
+            <Card className="text-center p-8 max-w-md mx-auto border-destructive">
+              <CardHeader>
+                <div className="mx-auto bg-destructive/10 rounded-full h-12 w-12 flex items-center justify-center">
+                    <AlertTriangle className="h-6 w-6 text-destructive" />
+                </div>
+                <CardTitle className="mt-4">Analysis Failed</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  We encountered an error while analyzing your scan. Please try again later.
+                </p>
+                {scan.analysisError && (
+                    <CardDescription className="mt-4 text-xs bg-secondary p-2 rounded-md">
+                        <strong>Error details:</strong> {scan.analysisError}
+                    </CardDescription>
+                )}
+              </CardContent>
+            </Card>
+        </div>
+    )
+  }
+  
+  if (!scan.analysis) {
+      // This is a fallback for the unlikely case where status is COMPLETED but analysis is null.
+      return <p>Analysis data is missing. Please contact support.</p>;
+  }
+
 
   return (
     <div className="container mx-auto p-4 space-y-8">

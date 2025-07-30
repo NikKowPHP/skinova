@@ -13,3 +13,5 @@
 - [x] Fix build error and resolve all linting issues.
 - [x] Refactor and remove obsolete language-learning code (`useLanguageStore`).
 - [x] Add a one-time banner to install the app as a PWA.
+- [x] Stabilize onboarding flow to prevent flickering and ensure smooth transitions.
+- [x] Fix "Analysis in Progress" stuck loop by adding status tracking.

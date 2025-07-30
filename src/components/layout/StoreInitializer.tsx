@@ -7,10 +7,12 @@ import {
   useUserProfile,
   useScanHistory,
 } from "@/lib/hooks/data";
+import { useAcceptanceStore } from "@/lib/stores/acceptance.store";
 
 function StoreInitializer() {
   const initializeAuth = useAuthStore((state) => state.initialize);
   const { step, determineCurrentStep, resetOnboarding } = useOnboardingStore();
+  const isAcceptanceComplete = useAcceptanceStore(state => state.isAcceptanceComplete());
 
   // Auth state listener
   useEffect(() => {
@@ -52,8 +54,10 @@ function StoreInitializer() {
     authLoading,
     isProfileLoading,
     areScansLoading,
+    isAcceptanceComplete, // React to changes in acceptance status
     determineCurrentStep,
     resetOnboarding,
+    step,
   ]);
 
   return null;
