@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { User } from "@prisma/client";
 import type { ScanHistoryItem } from "@/lib/types";
+import { useAcceptanceStore } from "./acceptance.store";
 
 export type OnboardingStep =
   | "PROFILE_SETUP"
@@ -44,6 +45,12 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
     const { userProfile, scans } = context;
 
     if (userProfile.onboardingCompleted) {
+      set({ step: "INACTIVE", isActive: false });
+      return;
+    }
+
+    // Do not start the onboarding tour until legal/disclaimers are accepted.
+    if (!useAcceptanceStore.getState().isAcceptanceComplete()) {
       set({ step: "INACTIVE", isActive: false });
       return;
     }

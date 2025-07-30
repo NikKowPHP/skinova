@@ -22,6 +22,7 @@ import { useOnboardingStore } from "@/lib/stores/onboarding.store";
 import { useCompleteOnboarding } from "@/lib/hooks/data";
 import Spinner from "../ui/Spinner";
 import { SkinovaLogo } from "../SkinovaLogo";
+import { AcceptanceFlow } from "../onboarding/AcceptanceFlow";
 
 function AppFooter() {
   return (
@@ -243,6 +244,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <AppFooter />
           <BottomTabBar />
         </div>
+        <AcceptanceFlow />
         <OnboardingOverlay />
       </div>
     );

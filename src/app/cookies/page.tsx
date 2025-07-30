@@ -2,10 +2,10 @@ export default function CookiesPage() {
   return (
     <div className="container mx-auto p-4 md:p-8 prose dark:prose-invert max-w-4xl">
       <h1 className="text-2xl font-bold mb-4">Cookie Policy</h1>
-      <p>Last updated: July 16, 2024</p>
+      <p>Last updated: July 29, 2024</p>
 
       <p>
-        Lexity ("us", "we", or "our") uses cookies on our website (the
+        Skinova ("us", "we", or "our") uses cookies on our website (the
         "Service"). By using the Service, you consent to the use of cookies.
       </p>
 
@@ -23,7 +23,7 @@ export default function CookiesPage() {
         easier and the Service more useful to you.
       </p>
 
-      <h2>How Lexity uses cookies</h2>
+      <h2>How Skinova uses cookies</h2>
       <p>
         When you use and access the Service, we may place a number of cookie
         files in your web browser. We use cookies for the following purposes:
@@ -55,10 +55,6 @@ export default function CookiesPage() {
         <li>
           <strong>Theme Preference:</strong> To remember your light or dark mode
           preference across visits.
-        </li>
-        <li>
-          <strong>Language Preference:</strong> To remember your currently
-          selected target language for a seamless learning experience.
         </li>
         <li>
           <strong>Cookie Consent:</strong> To remember whether you have accepted

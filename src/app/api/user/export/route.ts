@@ -25,9 +25,13 @@ export const GET = async (req: NextRequest) => {
         const decryptedScan = { ...scan };
         decryptedScan.imageUrl = decrypt(scan.imageUrl) ?? "DECRYPTION_FAILED";
         if (scan.notes) decryptedScan.notes = decrypt(scan.notes) ?? "DECRYPTION_FAILED";
-        if (scan.analysis) {
-          decryptedScan.analysis.analysisJson = decrypt(scan.analysis.analysisJson) ?? "DECRYPTION_FAILED";
-          decryptedScan.analysis.rawAiResponse = decrypt(scan.analysis.rawAiResponse) ?? "DECRYPTION_FAILED";
+        
+        if (decryptedScan.analysis) {
+          decryptedScan.analysis = {
+            ...decryptedScan.analysis,
+            analysisJson: decrypt(decryptedScan.analysis.analysisJson) ?? "DECRYPTION_FAILED",
+            rawAiResponse: decrypt(decryptedScan.analysis.rawAiResponse) ?? "DECRYPTION_FAILED",
+          };
         }
         return decryptedScan;
       } catch (e) {

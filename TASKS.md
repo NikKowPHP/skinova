@@ -5,3 +5,7 @@
 - [x] Fix scope issue in `gemini-service` causing test failures on file cleanup.
 - [x] Implement mobile camera capture for the scan page.
 - [x] Refactor ScanUploadForm to move file upload logic to the server, adhering to SRP.
+- [x] Fix TypeScript error in data export API.
+- [x] Fix `ConcernSeverity` type mismatch between Prisma enum and component props.
+- [x] Create a comprehensive and accurate privacy policy.
+- [x] Implement disclaimer and privacy policy acceptance dialogs for new users.

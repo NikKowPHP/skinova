@@ -1,11 +1,11 @@
 'use client';
-import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { ConcernSeverity } from '@prisma/client';
 
 interface Concern {
   id: string;
   name: string;
-  severity: 'Mild' | 'Moderate' | 'Severe';
+  severity: ConcernSeverity;
   position: { top: string; left: string; width: string; height: string };
 }
 

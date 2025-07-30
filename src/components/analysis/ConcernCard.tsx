@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { ConcernSeverity } from "@prisma/client";
 
 interface ConcernCardProps {
   name: string;
-  severity: 'Mild' | 'Moderate' | 'Severe';
+  severity: ConcernSeverity;
   description: string;
   isActive: boolean;
   onMouseEnter: () => void;
@@ -12,17 +13,19 @@ interface ConcernCardProps {
 
 export const ConcernCard = ({ name, severity, description, isActive, onMouseEnter, onMouseLeave }: ConcernCardProps) => {
   const severityColor = {
-    Mild: 'text-green-500',
-    Moderate: 'text-yellow-500',
-    Severe: 'text-red-500',
+    MILD: 'text-green-500',
+    MODERATE: 'text-yellow-500',
+    SEVERE: 'text-red-500',
   }[severity];
+
+  const displaySeverity = severity.charAt(0) + severity.slice(1).toLowerCase();
 
   return (
     <Card className={cn("transition-shadow", isActive && "shadow-lg ring-2 ring-primary")} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <CardHeader className="p-4">
         <div className="flex justify-between items-baseline">
           <CardTitle className="text-base">{name}</CardTitle>
-          <span className={cn("font-semibold text-sm", severityColor)}>{severity}</span>
+          <span className={cn("font-semibold text-sm", severityColor)}>{displaySeverity}</span>
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-0">
