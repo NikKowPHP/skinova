@@ -8,6 +8,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import StoreInitializer from "@/components/layout/StoreInitializer";
 import { Toaster } from "@/components/ui/toaster";
 import { PostHogProvider } from "@/providers/PostHogProvider";
+import { PWABanner } from "@/components/PWABanner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -66,6 +67,7 @@ export default function RootLayout({
             <StoreInitializer />
             <AppShell>{children}</AppShell>
             <CookieBanner />
+            <PWABanner />
             <Toaster />
           </PostHogProvider>
         </Providers>

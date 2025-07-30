@@ -12,3 +12,4 @@
 - [x] Fix TypeScript error in `ProfileForm` component due to incorrect type inference.
 - [x] Fix build error and resolve all linting issues.
 - [x] Refactor and remove obsolete language-learning code (`useLanguageStore`).
+- [x] Add a one-time banner to install the app as a PWA.
