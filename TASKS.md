@@ -3,3 +3,4 @@
 - [x] Fix failing unit tests related to AI service and onboarding store.
 - [x] Fix `fs` mock in AI service test that broke Prisma client import.
 - [x] Fix scope issue in `gemini-service` causing test failures on file cleanup.
+- [x] Implement mobile camera capture for the scan page.

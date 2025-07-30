@@ -21,12 +21,12 @@ type ScanWithRelations = SkinScan & {
 
 // Define props interface for clarity and type safety
 interface UserDetailPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // Define the page component as an async function constant
 const UserDetailPage = async ({ params }: UserDetailPageProps) => {
-  const { id } = params;
+  const { id } =await params;
   const user = await getUserById({
     where: { id },
     include: {

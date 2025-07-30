@@ -5,8 +5,8 @@ import { z } from "zod";
 import { decrypt, encrypt } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-    const { id } = params;
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     try {
       const { user } = await authMiddleware(request); // Admin check
       logger.info(`Admin consultation GET request by ${user.id} for consultation ${id}`);
@@ -29,8 +29,8 @@ const updateSchema = z.object({
   notes: z.string().optional(),
 });
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const { user } = await authMiddleware(request); // Admin check
     logger.info(`Admin consultation PUT request by ${user.id} for consultation ${id}`);

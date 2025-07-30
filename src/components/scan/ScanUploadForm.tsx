@@ -1,9 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { UploadCloud, Loader2 } from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCreateScan, useAnalyzeScan } from "@/lib/hooks/data";
 import { useAuthStore } from '@/lib/stores/auth.store';
@@ -26,9 +26,21 @@ export const ScanUploadForm = () => {
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
       setImagePreview(URL.createObjectURL(file));
     }
   };
+
+  useEffect(() => {
+    // Cleanup the object URL when the component unmounts
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   const handleAnalyzeClick = async () => {
     if (!imageFile || !authUser) {
@@ -70,7 +82,7 @@ export const ScanUploadForm = () => {
   };
   
   const isProcessing = isUploading || createScanMutation.isPending || analyzeScanMutation.isPending;
-  const buttonText = isUploading ? "Uploading..." : "Analyzing...";
+  const buttonText = isUploading ? "Uploading..." : (createScanMutation.isPending ? "Saving scan..." : "Analyzing...");
 
   return (
     <Card>
@@ -78,18 +90,25 @@ export const ScanUploadForm = () => {
         <CardTitle>Upload Your Scan</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-secondary/50">
+        <label htmlFor="scan-upload" className="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-secondary/50">
           {imagePreview ? (
             <img src={imagePreview} alt="Skin scan preview" className="object-cover h-full w-full rounded-lg" />
           ) : (
-            <div className="text-center text-muted-foreground">
-              <UploadCloud className="mx-auto h-10 w-10 mb-2" />
-              <p>Click to upload or drag & drop</p>
-              <p className="text-xs">PNG, JPG, or WEBP</p>
+            <div className="text-center text-muted-foreground p-4">
+              <Camera className="mx-auto h-10 w-10 mb-2" />
+              <p className="font-medium">Tap to take a photo</p>
+              <p className="text-xs">Or select an existing picture</p>
             </div>
           )}
-          <input type="file" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" />
-        </div>
+          <input
+            id="scan-upload"
+            type="file"
+            onChange={handleFileChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            accept="image/*"
+            capture="user"
+          />
+        </label>
         <Textarea
           placeholder="Add any notes about your skin today (optional)..."
           value={notes}
@@ -98,7 +117,7 @@ export const ScanUploadForm = () => {
         />
       </CardContent>
       <CardFooter>
-        <Button className="w-full" onClick={handleAnalyzeClick} disabled={isProcessing}>
+        <Button className="w-full" onClick={handleAnalyzeClick} disabled={isProcessing || !imageFile}>
           {isProcessing ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
