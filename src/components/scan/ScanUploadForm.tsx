@@ -14,12 +14,38 @@ export const ScanUploadForm = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
+  const [processingMessage, setProcessingMessage] = useState('Analyze My Skin');
 
   const router = useRouter();
   const { toast } = useToast();
   const authUser = useAuthStore((state) => state.user);
   const createScanMutation = useCreateScan();
   const analyzeScanMutation = useAnalyzeScan();
+
+  const isProcessing = createScanMutation.isPending || analyzeScanMutation.isPending;
+
+  useEffect(() => {
+    let timer1: NodeJS.Timeout;
+    let timer2: NodeJS.Timeout;
+
+    if (isProcessing) {
+      setProcessingMessage('Sending Request...');
+      timer1 = setTimeout(() => {
+        setProcessingMessage('Processing Your Skin...');
+      }, 10000);
+      timer2 = setTimeout(() => {
+        setProcessingMessage('Finalizing...');
+      }, 20000);
+    } else {
+      setProcessingMessage('Analyze My Skin');
+    }
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [isProcessing]);
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -64,9 +90,6 @@ export const ScanUploadForm = () => {
     });
   };
   
-  const isProcessing = createScanMutation.isPending || analyzeScanMutation.isPending;
-  const buttonText = createScanMutation.isPending ? "Uploading..." : (analyzeScanMutation.isPending ? "Analyzing..." : "Analyze My Skin");
-
   return (
     <Card>
       <CardHeader>
@@ -104,7 +127,7 @@ export const ScanUploadForm = () => {
           {isProcessing ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {buttonText}
+              {processingMessage}
             </>
           ) : (
             "Analyze My Skin"

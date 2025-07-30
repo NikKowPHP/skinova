@@ -7,3 +7,5 @@
 - [x] Ensure dashboard data is refetched after onboarding completion.
 - [x] Fix privacy policy link not working inside the onboarding dialog.
 - [x] Make privacy policy page free of dialogs for logged-in users.
+- [x] Make the red traffic light in dialogs a close button.
+- [x] Implement sequential loading messages on the "Analyze" button.

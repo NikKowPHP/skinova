@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { XIcon } from "lucide-react";
+import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -76,18 +76,27 @@ function DialogContent({
         {...props}
       >
         {/* macOS traffic lights for desktop */}
-        <div className="absolute top-4 left-4 hidden sm:flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-[#ff5f57]"></div>
-          {/* <div className="h-3 w-3 rounded-full bg-[#febb2e]"></div> */}
-          {/* <div className="h-3 w-3 rounded-full bg-[#28c840]"></div> */}
-        </div>
+        {showCloseButton && (
+          <div className="absolute top-4 left-4 hidden sm:flex items-center gap-2">
+            <DialogClose asChild>
+              <button
+                className="group h-3 w-3 rounded-full bg-[#ff5f57] hover:bg-[#ff4034] transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-label="Close"
+              >
+                <X className="h-2 w-2 text-black/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </DialogClose>
+            {/* <div className="h-3 w-3 rounded-full bg-[#febb2e]"></div> */}
+            {/* <div className="h-3 w-3 rounded-full bg-[#28c840]"></div> */}
+          </div>
+        )}
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none sm:top-3.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none sm:hidden [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
           >
-            <XIcon />
+            <X />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}
