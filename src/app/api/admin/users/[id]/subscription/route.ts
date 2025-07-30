@@ -11,11 +11,11 @@ const subscriptionSchema = z.object({
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: { id: string } },
 ) {
+  const { id } = params;
   try {
     // Authenticate and authorize
-    const { id } = await params;
     if (!id) {
       return new NextResponse("User ID is required", { status: 400 });
     }
@@ -41,7 +41,6 @@ export async function PUT(
 
     return NextResponse.json(updatedUser);
   } catch (error: any) {
-    const { id } = await params;
     logger.error(`Error in /api/admin/users/${id}/subscription PUT`, error);
     if (error.message === "Unauthorized") {
       return new NextResponse("Unauthorized", { status: 401 });

@@ -10,27 +10,31 @@ import {
 } from "@/components/ui/table";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import type { JournalEntryWithRelations } from "@/lib/types";
-import { decrypt } from "@/lib/encryption";
+import { SkinScan, SkinAnalysis, IdentifiedConcern } from "@prisma/client";
+
+// Define a more specific type for the payload
+type ScanWithRelations = SkinScan & {
+  analysis: (SkinAnalysis & {
+    concerns: IdentifiedConcern[];
+  }) | null;
+};
 
 // Define props interface for clarity and type safety
 interface UserDetailPageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 // Define the page component as an async function constant
 const UserDetailPage = async ({ params }: UserDetailPageProps) => {
-  // Await the params to get the user ID
-  const { id } = await params;
+  const { id } = params;
   const user = await getUserById({
     where: { id },
     include: {
-      journalEntries: {
+      scans: {
         include: {
-          topic: true,
           analysis: {
             include: {
-              mistakes: true,
+              concerns: true,
             },
           },
         },
@@ -44,29 +48,6 @@ const UserDetailPage = async ({ params }: UserDetailPageProps) => {
   if (!user) {
     return <div className="p-4">User not found</div>;
   }
-
-  // Decrypt journal content and analysis for display
-  const decryptedJournalEntries = user.journalEntries.map((entry) => {
-    const decryptedContent = decrypt(entry.content);
-
-    let processedAnalysis = null;
-    if (entry.analysis) {
-      const decryptedRawResponse = decrypt(entry.analysis.rawAiResponse);
-      processedAnalysis = {
-        ...entry.analysis,
-        feedbackJson: decrypt(entry.analysis.feedbackJson),
-        rawAiResponse: decryptedRawResponse
-          ? JSON.parse(decryptedRawResponse)
-          : null,
-      };
-    }
-
-    return {
-      ...entry,
-      content: decryptedContent || "[Decryption Failed]",
-      analysis: processedAnalysis,
-    };
-  });
 
   return (
     <div className="p-6">
@@ -105,32 +86,31 @@ const UserDetailPage = async ({ params }: UserDetailPageProps) => {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Journal Entries</h3>
-          {decryptedJournalEntries?.length ? (
+          <h3 className="text-lg font-medium">Skin Scans</h3>
+          {user.scans?.length ? (
             <>
               {/* Mobile View */}
               <div className="md:hidden space-y-2">
-                {decryptedJournalEntries.map(
-                  (entry: JournalEntryWithRelations) => (
-                    <Link href={`/journal/${entry.id}`} key={entry.id}>
-                      <Card className="hover:bg-accent/50 transition-colors">
-                        <CardContent className="p-4">
-                          <p className="font-semibold">
-                            {entry.topic?.title || "Free Write"}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(entry.createdAt).toLocaleDateString()}
-                          </p>
-                          <p className="text-sm mt-1">
-                            {entry.analysis
-                              ? "Analysis available"
-                              : "No analysis"}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ),
-                )}
+                {user.scans.map((scan: ScanWithRelations) => (
+                  <Link href={`/scan/${scan.id}`} key={scan.id}>
+                    <Card className="hover:bg-accent/50 transition-colors">
+                      <CardContent className="p-4">
+                        <p className="font-semibold">
+                          Scan from{" "}
+                          {new Date(scan.createdAt).toLocaleDateString()}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Score: {scan.analysis?.overallScore ?? "N/A"}
+                        </p>
+                        <p className="text-sm mt-1">
+                          {scan.analysis
+                            ? `${scan.analysis.concerns.length} concerns found`
+                            : "No analysis"}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
               </div>
               {/* Desktop View */}
               <div className="hidden md:block">
@@ -138,41 +118,41 @@ const UserDetailPage = async ({ params }: UserDetailPageProps) => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
-                      <TableHead>Topic</TableHead>
+                      <TableHead>Score</TableHead>
                       <TableHead>Analysis</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {decryptedJournalEntries.map(
-                      (entry: JournalEntryWithRelations) => (
-                        <TableRow key={entry.id}>
-                          <TableCell>
-                            {new Date(entry.createdAt).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>
-                            {entry.topic?.title || "Free Write"}
-                          </TableCell>
-                          <TableCell>
-                            {entry.analysis ? (
-                              <Link
-                                href={`/journal/${entry.id}`}
-                                className="text-primary hover:underline"
-                              >
-                                View Analysis
-                              </Link>
-                            ) : (
-                              "No analysis"
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ),
-                    )}
+                    {user.scans.map((scan: ScanWithRelations) => (
+                      <TableRow key={scan.id}>
+                        <TableCell>
+                          {new Date(scan.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {scan.analysis?.overallScore ?? "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          {scan.analysis ? (
+                            <Link
+                              href={`/scan/${scan.id}`}
+                              className="text-primary hover:underline"
+                            >
+                              View Scan Details
+                            </Link>
+                          ) : (
+                            "No analysis"
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </div>
             </>
           ) : (
-            <p className="text-muted-foreground">No journal entries found</p>
+            <p className="text-muted-foreground">
+              No skin scans found for this user.
+            </p>
           )}
         </div>
       </div>

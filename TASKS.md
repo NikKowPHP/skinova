@@ -1,35 +1,5 @@
-- [x] Implement Phase A: Project Setup & Initial Scaffolding
-- [x] Correct oversights from initial Phase A implementation (icons, hooks, tests)
-- [x] Implement Phase B: Static Component Implementation
-- [x] Fix missed `SkinProfileWizard` integration from Phase B
-- [x] Implement Phase C: Theming & Visual Polish
-- [x] Fix missed component styling from Phase C (Card, Button)
-- [x] Implement Phase D: Database Schema & Seeding
-- [x] Implement Phase E: Core Feature API Implementation
-- [x] Correctly and completely implement Phase F: Frontend API Integration
-- [x] Implement Phase G: Monetization & Billing Integration
-- [x] Implement Phase H: Backend Automation & Advanced Services
-- [x] Implement Phase I: Admin Dashboard & Internal Tooling
-- [x] Fix missing UI components from initial Phase I implementation
-- [x] Fix missing imports on admin page to finalize Phase I
-- [x] Implement Phase J: Final Testing & Deployment Preparation
-- [x] Create run.md file with instructions for obtaining environment keys
-- [x] Update app_description.md to include undocumented features
-- [x] Remove unused files inherited from Lexity framework
-- [x] Fix TypeScript errors from code hygiene pass
-- [x] Fix TypeScript type mismatch between scan history API and onboarding store
-- [x] Fix Tailwind CSS compilation error by restructuring globals.css
-- [x] Add comprehensive logging to all backend API routes
-- [x] Fix image download logic in analysis API to support mock URLs
-- [x] Implement production-ready image upload and analysis pipeline
-- [x] Fix "Object not found" error for seeded images by handling external URLs
-- [x] Fix infinite polling loop on scan analysis page
-- [x] Fix 404 error on POST /api/scan/analyze by relocating the endpoint
-- [x] Fix 500 error on admin users endpoint due to invalid field in Prisma query
-- [x] Add diagnostic logging to /api/analyze-scan to debug 404 error
-- [x] Fix 404 error during analysis caused by incomplete seeded user profile
-- [x] Fix CSP violation by allowing blob: URLs for image previews
-- [x] Fix infinite polling loop by refactoring mutation hooks to prevent `onSuccess` override
-- [x] Refactor Gemini image analysis to use file uploads instead of inline data
-- [x] Fix "Routine not found" error by using upsert logic for new users
-- [x] Fix onboarding flow getting stuck by invalidating queries and re-evaluating state
+- [x] Fix Next.js warnings about direct `params` access and correct broken admin user detail page.
+- [x] Create `.env.test` file for end-to-end testing environment.
+- [x] Fix failing unit tests related to AI service and onboarding store.
+- [x] Fix `fs` mock in AI service test that broke Prisma client import.
+- [x] Fix scope issue in `gemini-service` causing test failures on file cleanup.

@@ -1,12 +1,16 @@
+import { logger } from "./logger";
 
 describe("Encryption Service", () => {
   const originalKey = process.env.APP_ENCRYPTION_KEY;
+  let errorSpy: jest.SpyInstance;
 
   beforeEach(() => {
     // Ensure the key is set for most tests from the jest setup
     process.env.APP_ENCRYPTION_KEY =
       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     jest.resetModules(); // Re-import modules with current env vars
+    // Spy on logger.error and suppress its output to the console
+    errorSpy = jest.spyOn(logger, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -17,6 +21,8 @@ describe("Encryption Service", () => {
       delete process.env.APP_ENCRYPTION_KEY;
     }
     jest.resetModules();
+    // Restore the original logger.error implementation
+    errorSpy.mockRestore();
   });
 
   it("should throw an error if APP_ENCRYPTION_KEY is not set for encryption, but return null for decryption", () => {
@@ -86,6 +92,8 @@ describe("Encryption Service", () => {
       const { decrypt } = require("./encryption");
       expect(decrypt("invalid-format")).toBeNull();
       expect(decrypt("too:few:parts")).toBeNull();
+      // Verify that the logger was called for these failures
+      expect(errorSpy).toHaveBeenCalled();
     });
 
     it("should return null if decryption fails due to wrong key (auth tag mismatch)", () => {
@@ -100,6 +108,7 @@ describe("Encryption Service", () => {
       const { decrypt: decryptWithWrongKey } = require("./encryption");
 
       expect(decryptWithWrongKey(encrypted)).toBeNull();
+      expect(errorSpy).toHaveBeenCalled();
     });
 
     it("should return null if the ciphertext is tampered with", () => {
@@ -112,6 +121,7 @@ describe("Encryption Service", () => {
       const tampered = parts.join(":");
 
       expect(decrypt(tampered)).toBeNull();
+      expect(errorSpy).toHaveBeenCalled();
     });
   });
 });

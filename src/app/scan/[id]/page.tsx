@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { useParams } from 'next/navigation';
 import { AnalysisResultDisplay } from "@/components/analysis/AnalysisResultDisplay";
 import { ConcernCard } from "@/components/analysis/ConcernCard";
 import { ConsultationPrompt } from "@/components/analysis/ConsultationPrompt";
@@ -8,7 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Spinner from '@/components/ui/Spinner';
 
-export default function ScanResultPage({ params }: { params: { id: string } }) {
+export default function ScanResultPage() {
+  const params = useParams<{ id: string }>();
   const [activeConcernId, setActiveConcernId] = React.useState<string | null>(null);
   const { data: scan, isLoading, error } = useScan(params.id);
 
@@ -79,7 +81,7 @@ export default function ScanResultPage({ params }: { params: { id: string } }) {
               onMouseLeave={() => setActiveConcernId(null)}
             />
           ))}
-          <ConsultationPrompt />
+          <ConsultationPrompt scanId={params.id} />
         </div>
       </div>
     </div>

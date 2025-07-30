@@ -1,6 +1,6 @@
-
 /** @jest-environment jsdom */
 import { useOnboardingStore } from "./onboarding.store";
+import { SkinType } from "@prisma/client";
 
 // A helper function to create a mock user profile
 const createMockProfile = (overrides: any = {}) => ({
@@ -8,19 +8,16 @@ const createMockProfile = (overrides: any = {}) => ({
   email: "test@test.com",
   supabaseAuthId: "user-1-supa",
   onboardingCompleted: false,
-  _count: { srsItems: 0 },
+  skinType: null,
+  primaryConcern: null,
   ...overrides,
 });
 
-// A helper function to create a mock journal entry
-const createMockJournal = (overrides: any = {}) => ({
-  id: "journal-1",
-  authorId: "user-1",
-  topicId: "topic-1",
-  content: "This is a journal",
-  targetLanguage: "spanish",
+// A helper function to create a mock scan
+const createMockScan = (overrides: any = {}) => ({
+  id: "scan-1",
+  userId: "user-1",
   createdAt: new Date(),
-  updatedAt: new Date(),
   analysis: null,
   ...overrides,
 });
@@ -36,7 +33,7 @@ describe("useOnboardingStore: determineCurrentStep", () => {
     const { determineCurrentStep } = useOnboardingStore.getState();
     const profile = createMockProfile({ onboardingCompleted: true });
 
-    determineCurrentStep({ userProfile: profile, journals: [] });
+    determineCurrentStep({ userProfile: profile, scans: [] });
 
     expect(useOnboardingStore.getState().step).toBe("INACTIVE");
     expect(useOnboardingStore.getState().isActive).toBe(false);
@@ -44,69 +41,53 @@ describe("useOnboardingStore: determineCurrentStep", () => {
 
   it("should set step to PROFILE_SETUP for a new user with incomplete profile", () => {
     const { determineCurrentStep } = useOnboardingStore.getState();
-    const profile = createMockProfile({ nativeLanguage: null });
+    const profile = createMockProfile({ skinType: null }); // Missing skinType
 
-    determineCurrentStep({ userProfile: profile, journals: [] });
+    determineCurrentStep({ userProfile: profile, scans: [] });
 
     expect(useOnboardingStore.getState().step).toBe("PROFILE_SETUP");
     expect(useOnboardingStore.getState().isActive).toBe(true);
   });
 
-  it("should set step to FIRST_JOURNAL for a user with a complete profile but no journals", () => {
+  it("should set step to FIRST_SCAN for a user with a complete profile but no scans", () => {
     const { determineCurrentStep } = useOnboardingStore.getState();
     const profile = createMockProfile({
-      nativeLanguage: "english",
-      defaultTargetLanguage: "spanish",
+      skinType: SkinType.NORMAL,
+      primaryConcern: "Acne",
     });
 
-    determineCurrentStep({ userProfile: profile, journals: [] });
+    determineCurrentStep({ userProfile: profile, scans: [] });
 
-    expect(useOnboardingStore.getState().step).toBe("FIRST_JOURNAL");
+    expect(useOnboardingStore.getState().step).toBe("FIRST_SCAN");
     expect(useOnboardingStore.getState().isActive).toBe(true);
   });
 
-  it("should set step to VIEW_ANALYSIS for a user with an unanalyzed journal", () => {
+  it("should set step to VIEW_ANALYSIS for a user with an unanalyzed scan", () => {
     const { determineCurrentStep } = useOnboardingStore.getState();
     const profile = createMockProfile({
-      nativeLanguage: "english",
-      defaultTargetLanguage: "spanish",
+      skinType: SkinType.NORMAL,
+      primaryConcern: "Acne",
     });
-    const journals = [createMockJournal({ analysis: null })];
+    const scans = [createMockScan({ analysis: null })];
 
-    determineCurrentStep({ userProfile: profile, journals: journals as any });
+    determineCurrentStep({ userProfile: profile, scans: scans as any });
 
     expect(useOnboardingStore.getState().step).toBe("VIEW_ANALYSIS");
     expect(useOnboardingStore.getState().isActive).toBe(true);
-    expect(useOnboardingStore.getState().onboardingJournalId).toBe("journal-1");
+    expect(useOnboardingStore.getState().onboardingScanId).toBe("scan-1");
   });
 
-  it("should set step to VIEW_ANALYSIS for a user with an analyzed journal but no SRS items", () => {
+  it("should set step to COMPLETED for a user with an analyzed scan", () => {
     const { determineCurrentStep } = useOnboardingStore.getState();
     const profile = createMockProfile({
-      nativeLanguage: "english",
-      defaultTargetLanguage: "spanish",
-      _count: { srsItems: 0 },
+      skinType: SkinType.NORMAL,
+      primaryConcern: "Acne",
     });
-    const journals = [createMockJournal({ analysis: { id: "analysis-1" } })];
+    const scans = [createMockScan({ analysis: { id: "analysis-1" } })];
 
-    determineCurrentStep({ userProfile: profile, journals: journals as any });
+    determineCurrentStep({ userProfile: profile, scans: scans as any });
 
-    expect(useOnboardingStore.getState().step).toBe("VIEW_ANALYSIS");
-    expect(useOnboardingStore.getState().isActive).toBe(true);
-  });
-
-  it("should set step to STUDY_INTRO for a user with an analyzed journal and SRS items", () => {
-    const { determineCurrentStep } = useOnboardingStore.getState();
-    const profile = createMockProfile({
-      nativeLanguage: "english",
-      defaultTargetLanguage: "spanish",
-      _count: { srsItems: 1 },
-    });
-    const journals = [createMockJournal({ analysis: { id: "analysis-1" } })];
-
-    determineCurrentStep({ userProfile: profile, journals: journals as any });
-
-    expect(useOnboardingStore.getState().step).toBe("STUDY_INTRO");
+    expect(useOnboardingStore.getState().step).toBe("COMPLETED");
     expect(useOnboardingStore.getState().isActive).toBe(true);
   });
 });

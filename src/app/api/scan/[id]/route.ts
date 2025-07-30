@@ -6,8 +6,8 @@ import { decrypt } from "@/lib/encryption";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 // GET handler to fetch a single scan with its analysis
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params;
   if (!id) return NextResponse.json({ error: "Scan ID is required" }, { status: 400 });
 
   const supabase = await createClient();
@@ -61,8 +61,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // DELETE handler to remove a scan
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } =  await params;
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const { id } =  params;
   if (!id) return NextResponse.json({ error: "Scan ID is required" }, { status: 400 });
 
   const supabase = await createClient();
