@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 
 interface ConsultationReviewModalProps {
     consultationId: string;
@@ -48,7 +49,9 @@ export const ConsultationReviewModal = ({ consultationId, isOpen, onClose }: Con
                             <h3 className="font-semibold mb-2">Scan Details</h3>
                             <p className="text-sm"><strong>User:</strong> {consultation.user.email}</p>
                             <p className="text-sm"><strong>Scan Date:</strong> {new Date(consultation.scan.createdAt).toLocaleString()}</p>
-                            <img src={consultation.scan.imageUrl} alt="Skin scan" className="rounded-lg mt-4 w-full aspect-square object-cover" />
+                            <div className="relative mt-4 w-full aspect-square">
+                                <Image src={consultation.scan.imageUrl} alt="Skin scan" fill className="rounded-lg object-cover" />
+                            </div>
                         </div>
                         <div className="space-y-4">
                             <div>

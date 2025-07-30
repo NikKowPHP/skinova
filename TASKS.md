@@ -9,3 +9,6 @@
 - [x] Fix `ConcernSeverity` type mismatch between Prisma enum and component props.
 - [x] Create a comprehensive and accurate privacy policy.
 - [x] Implement disclaimer and privacy policy acceptance dialogs for new users.
+- [x] Fix TypeScript error in `ProfileForm` component due to incorrect type inference.
+- [x] Fix build error and resolve all linting issues.
+- [x] Refactor and remove obsolete language-learning code (`useLanguageStore`).

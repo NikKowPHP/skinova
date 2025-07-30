@@ -1,4 +1,3 @@
-
 /** @jest-environment jsdom */
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -8,6 +7,7 @@ import { useUpdateProfile } from "./useUpdateProfile";
 import { apiClient } from "@/lib/services/api-client.service";
 import { useAuthStore } from "@/lib/stores/auth.store";
 import { useToast } from "@/components/ui/use-toast";
+import { SkinType } from "@prisma/client";
 
 // Mock dependencies
 jest.mock("@/lib/services/api-client.service");
@@ -35,8 +35,8 @@ describe("useUpdateProfile", () => {
   const queryKey = ["userProfile", mockUser.id];
   const initialProfile = {
     id: mockUser.id,
-    nativeLanguage: "english",
-    writingStyle: "Casual",
+    skinType: SkinType.NORMAL,
+    primaryConcern: "Acne",
   };
 
   beforeEach(() => {
@@ -54,7 +54,7 @@ describe("useUpdateProfile", () => {
     (mockedApiClient.profile.update as jest.Mock).mockResolvedValue({});
 
     const { result } = renderHook(() => useUpdateProfile(), { wrapper });
-    const newProfileData = { writingStyle: "Formal" };
+    const newProfileData = { skinType: SkinType.OILY };
 
     act(() => {
       result.current.mutate(newProfileData);
@@ -77,7 +77,7 @@ describe("useUpdateProfile", () => {
     (mockedApiClient.profile.update as jest.Mock).mockRejectedValue(mockError);
 
     const { result } = renderHook(() => useUpdateProfile(), { wrapper });
-    const newProfileData = { writingStyle: "Formal" };
+    const newProfileData = { skinType: SkinType.OILY };
 
     act(() => {
       result.current.mutate(newProfileData, {
@@ -107,7 +107,7 @@ describe("useUpdateProfile", () => {
     const { result } = renderHook(() => useUpdateProfile(), { wrapper });
 
     await act(async () => {
-      await result.current.mutateAsync({ writingStyle: "Formal" });
+      await result.current.mutateAsync({ skinType: SkinType.OILY });
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));

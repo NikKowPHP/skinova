@@ -5,6 +5,7 @@ import { useUserProfile } from "./useUserProfile";
 import { apiClient } from "@/lib/services/api-client.service";
 import { useAuthStore } from "@/lib/stores/auth.store";
 import React from "react";
+import { SkinType } from "@prisma/client";
 
 // Mock the API client
 jest.mock("@/lib/services/api-client.service");
@@ -70,7 +71,8 @@ describe("useUserProfile", () => {
     it("should fetch user profile and return data on success (happy path)", async () => {
       const mockProfile = {
         email: "test@example.com",
-        nativeLanguage: "English",
+        skinType: SkinType.OILY,
+        primaryConcern: "Acne",
         subscriptionTier: "FREE",
       };
       (mockedApiClient.profile.get as jest.Mock).mockResolvedValue(mockProfile);

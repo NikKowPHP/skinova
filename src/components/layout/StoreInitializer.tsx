@@ -7,12 +7,10 @@ import {
   useUserProfile,
   useScanHistory,
 } from "@/lib/hooks/data";
-import { useLanguageStore } from "@/lib/stores/language.store";
 
 function StoreInitializer() {
   const initializeAuth = useAuthStore((state) => state.initialize);
   const { step, determineCurrentStep, resetOnboarding } = useOnboardingStore();
-  const { activeTargetLanguage, setActiveTargetLanguage } = useLanguageStore();
 
   // Auth state listener
   useEffect(() => {
@@ -28,16 +26,7 @@ function StoreInitializer() {
   const { data: userProfile, isLoading: isProfileLoading } = useUserProfile();
   const { data: scans, isLoading: areScansLoading } = useScanHistory();
 
-  // Effect 1: Set the active language as soon as the profile is available.
-  // This unblocks other data hooks that depend on the active language.
-  useEffect(() => {
-    if (user && userProfile && !activeTargetLanguage) {
-      // In Skinova, there's no language selection, so this effect is simplified or could be removed.
-      // We'll keep it as a no-op for now in case of future language support.
-    }
-  }, [user, userProfile, activeTargetLanguage, setActiveTargetLanguage]);
-
-  // Effect 2: Determine the onboarding step once all necessary data is loaded.
+  // Effect to determine the onboarding step once all necessary data is loaded.
   useEffect(() => {
     // We must wait for auth, profile, and scans to be loaded before making a decision.
     if (authLoading || isProfileLoading || areScansLoading) {

@@ -142,7 +142,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     switch (step) {
       case "PROFILE_SETUP":
         return (
-          // @ts-ignore
+       
           <SkinProfileWizard
             isOpen={true}
             onClose={() => {}}

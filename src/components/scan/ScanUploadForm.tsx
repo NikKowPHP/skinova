@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useCreateScan, useAnalyzeScan } from "@/lib/hooks/data";
 import { useAuthStore } from '@/lib/stores/auth.store';
 import { useToast } from '../ui/use-toast';
+import Image from 'next/image';
 
 export const ScanUploadForm = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -72,9 +73,9 @@ export const ScanUploadForm = () => {
         <CardTitle>Upload Your Scan</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <label htmlFor="scan-upload" className="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-secondary/50">
+        <label htmlFor="scan-upload" className="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-secondary/50 overflow-hidden">
           {imagePreview ? (
-            <img src={imagePreview} alt="Skin scan preview" className="object-cover h-full w-full rounded-lg" />
+            <Image src={imagePreview} alt="Skin scan preview" fill className="object-cover" />
           ) : (
             <div className="text-center text-muted-foreground p-4">
               <Camera className="mx-auto h-10 w-10 mb-2" />

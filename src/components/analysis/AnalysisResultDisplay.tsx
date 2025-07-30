@@ -1,6 +1,7 @@
 'use client';
 import { cn } from '@/lib/utils';
 import { ConcernSeverity } from '@prisma/client';
+import Image from 'next/image';
 
 interface Concern {
   id: string;
@@ -19,7 +20,7 @@ interface AnalysisResultDisplayProps {
 export const AnalysisResultDisplay = ({ imageUrl, concerns, activeConcernId, onConcernHover }: AnalysisResultDisplayProps) => {
   return (
     <div className="relative w-full aspect-square max-w-md mx-auto">
-      <img src={imageUrl} alt="Analyzed skin scan" className="rounded-lg object-cover w-full h-full" />
+      <Image src={imageUrl} alt="Analyzed skin scan" fill className="rounded-lg object-cover" />
       {concerns.map(concern => (
         <div
           key={concern.id}

@@ -13,6 +13,8 @@ import {
 import { Skeleton } from "./ui/skeleton";
 import { SUPPORTED_SKIN_TYPES, SUPPORTED_CONCERNS } from "@/lib/constants";
 import { useState, useEffect } from "react";
+import type { ProfileUpdateData } from "@/lib/types";
+import { SkinType } from "@prisma/client";
 
 interface ProfileFormProps {
   email?: string;
@@ -64,7 +66,16 @@ export function ProfileForm({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    updateProfile(formState);
+    
+    const payload: ProfileUpdateData = {};
+    if (formState.skinType) {
+      payload.skinType = formState.skinType as SkinType;
+    }
+    if (formState.primaryConcern) {
+      payload.primaryConcern = formState.primaryConcern;
+    }
+
+    updateProfile(payload);
   };
 
   const handleValueChange = (field: keyof typeof formState, value: string) => {
