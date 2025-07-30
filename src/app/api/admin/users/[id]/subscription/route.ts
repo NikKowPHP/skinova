@@ -11,9 +11,9 @@ const subscriptionSchema = z.object({
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = params;
+  const { id } = await params;
   try {
     // Authenticate and authorize
     if (!id) {

@@ -11,8 +11,8 @@ const productSchema = z.object({
   description: z.string().min(1),
 });
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const { user } = await authMiddleware(request); // Admin check
     logger.info(`Admin product PUT request by ${user.id} for product ${id}`);
@@ -31,8 +31,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const { user } = await authMiddleware(request); // Admin check
     logger.info(`Admin product DELETE request by ${user.id} for product ${id}`);
