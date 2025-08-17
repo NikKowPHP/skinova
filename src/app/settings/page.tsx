@@ -102,45 +102,7 @@ export default function SettingsPage() {
           </Card>
         </section>
         
-        <section>
-          <h2 className="text-subhead px-4 mb-2 text-muted-foreground uppercase">
-            Consultation History
-          </h2>
-          <Card>
-            <CardContent className="p-4">
-              {isLoading ? (
-                <Skeleton className="h-20 w-full" />
-              ) : !consultations || consultations.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  You haven't requested any consultations yet.
-                </p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Scan ID</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {consultations.map((c: any) => (
-                      <TableRow key={c.id}>
-                        <TableCell>{new Date(c.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>{c.status}</TableCell>
-                        <TableCell>
-                          <Link href={`/scan/${c.scanId}`} className="underline hover:text-primary">
-                            View Scan
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </section>
+       
 
         <section>
           <h2 className="text-subhead px-4 mb-2 text-muted-foreground uppercase">

@@ -136,7 +136,7 @@ export default function ScanResultPage() {
             </CardContent>
           </Card>
           
-          {!isOnboarding && <ConsultationPrompt scanId={params.id} />}
+
         </div>
       </div>
     </div>
