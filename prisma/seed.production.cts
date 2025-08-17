@@ -38,7 +38,7 @@ async function main() {
       purchaseUrl: 'https://www.amazon.com/dp/B00LO1DNXU',
       tags: ['for-oily', 'for-combination', 'acne']
     },
-    
+
     // Serums
     { 
       name: 'The Ordinary Niacinamide 10% + Zinc 1%', 
@@ -58,7 +58,7 @@ async function main() {
       purchaseUrl: 'https://www.amazon.com/dp/B074Z4665V',
       tags: ['for-dry', 'for-sensitive', 'dryness', 'hydrating']
     },
-    
+
     // Treatments
     { 
       name: 'Differin Adapalene Gel 0.1% Acne Treatment', 
@@ -69,7 +69,7 @@ async function main() {
       purchaseUrl: 'https://www.amazon.com/dp/B07L1PHSY9',
       tags: ['acne', 'fine-lines-&-wrinkles', 'hyperpigmentation']
     },
-    
+
     // Moisturizers
     { 
       name: 'CeraVe PM Facial Moisturizing Lotion', 
@@ -89,7 +89,7 @@ async function main() {
       purchaseUrl: 'https://www.amazon.com/dp/B000NWGCZ2',
       tags: ['for-dry', 'for-sensitive', 'dryness']
     },
-    
+
     // Sunscreens
     { 
       name: 'EltaMD UV Clear Broad-Spectrum SPF 46', 
